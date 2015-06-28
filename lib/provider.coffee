@@ -10,31 +10,34 @@ module.exports =
   # This will take priority over the default provider, which has a priority of 0.
   # `excludeLowerPriority` will suppress any providers with a lower priority
   # i.e. The default provider will be suppressed
-  inclusionPriority: 1
+  inclusionPriority: 100
   excludeLowerPriority: true
+  filterSuggestions: true
 
   # Required: Return a promise, an array of suggestions, or null.
   getSuggestions: ({editor, bufferPosition, scopeDescriptor, prefix}) ->
+    prefix = @getPrefix(editor,bufferPosition)
     new Promise (resolve) =>
         if @isLocalVariable(prefix)
             resolve(@getLocalMethods(editor,prefix))
         if objectType = @isKnownObject(editor,bufferPosition,prefix)
+            console.log 'is knonwn'
             @getObjectAvailableMethods(editor,prefix,objectType,resolve)
 
-  isLocalVariable: (prefix) ->
-    matches = prefix.match(/$$/)
-    matches and matches.input == 'this'
+  isLocalVariable: (prefix,bufferPosition) ->
+    prefix.match(/\$this->/)
 
   getLocalMethods: (editor,prefix) ->
     completions = []
 
     for line in editor.buffer.getLines()
         if matches = line.match(regexMethod)
-            completions.push(
-                text: prefix + '->' + matches[1]
-                displayText: matches[1]
-                type: 'function'
-            )
+            if matches[1].indexOf(prefix)
+                completions.push(
+                    text: matches[1]
+                    displayText: matches[1]
+                    type: 'function'
+                )
 
     completions
 
@@ -43,7 +46,9 @@ module.exports =
 
     for param in currentMethodParams
         unless param.objectType is undefined
-            return if param.varName.substr(1) == prefix then param.objectType else false
+            regex = "\\$"+param.varName.substr(1)+"\\-\\>"
+            # console.log (new RegExp(regex)), prefix, regex
+            return if prefix.match(regex) then param.objectType else false
  
 
   getMethodParams: (editor,bufferPosition) ->
@@ -95,11 +100,12 @@ module.exports =
                     completions = []
 
                     for method in @methods
-                        completions.push(
-                            text: prefix + '->' + method,
-                            displayText: method
-                            type: 'function'
-                        ) 
+                        if method.indexOf(prefix)
+                            completions.push(
+                                text: method,
+                                displayText: method
+                                type: 'function'
+                            ) 
 
                     resolve(completions)
                 catch error
@@ -116,3 +122,12 @@ module.exports =
   dispose: ->
 
   # loadCompletions: ->
+  getPrefix: (editor, bufferPosition) ->
+    # Whatever your prefix regex might be
+    regex = /[\$\w0-9>_-]+$/
+
+    # Get the text for the line up to the triggered buffer position
+    line = editor.getTextInRange([[bufferPosition.row, 0], bufferPosition])
+
+    # Match the regex to the line, and return the match
+    line.match(regex)?[0] or ''
