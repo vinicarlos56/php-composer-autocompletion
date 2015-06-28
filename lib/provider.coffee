@@ -21,25 +21,48 @@ module.exports =
         if @isLocalVariable(prefix)
             resolve(@getLocalMethods(editor,prefix))
         if objectType = @isKnownObject(editor,bufferPosition,prefix)
-            console.log 'is knonwn'
             @getObjectAvailableMethods(editor,prefix,objectType,resolve)
 
   isLocalVariable: (prefix,bufferPosition) ->
     prefix.match(/\$this->/)
 
   getLocalMethods: (editor,prefix) ->
+
     completions = []
 
     for line in editor.buffer.getLines()
         if matches = line.match(regexMethod)
             if matches[1].indexOf(prefix)
+
+                methodMatches = matches.input.match(/(public|private|protected)?\s?(static)?\s?function\s\w+\((.*)\)/)
+                visibility = methodMatches[1]
+                isStatic = methodMatches[2]
+                parametersString = methodMatches[3]
+                
                 completions.push(
                     text: matches[1]
+                    snippet: @createMethodSnippet(matches[1],parametersString)
                     displayText: matches[1]
-                    type: 'function'
+                    type: 'method'
+                    leftLabel: "#{visibility}" 
+                    className: "method-#{visibility}"
                 )
 
     completions
+
+  createMethodSnippet: (method,parametersString) ->
+
+      parameters = parametersString.match(/\$\w+/g)
+
+      if parameters 
+
+          mapped = parameters.map(
+            (item,index) -> 
+                "${#{index+2}:#{item}}"
+          ).join(',')
+
+          "#{method}(#{mapped})${#{parameters.length+2}}" 
+
 
   isKnownObject: (editor,bufferPosition,prefix) ->
     currentMethodParams = @getMethodParams(editor,bufferPosition)
@@ -104,7 +127,7 @@ module.exports =
                             completions.push(
                                 text: method,
                                 displayText: method
-                                type: 'function'
+                                type: 'method'
                             ) 
 
                     resolve(completions)
