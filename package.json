@@ -1,23 +1,26 @@
 {
   "name": "php-composer-completion",
   "main": "./lib/main",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "autocomplete+ provider for php projects based on composer",
   "keywords": [
-      "php","composer","autocomplete","completion","php-completion"
+    "php",
+    "composer",
+    "autocomplete",
+    "completion",
+    "php-completion"
   ],
   "repository": "https://github.com/vinicarlos56/php-composer-autocompletion",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "providedServices": {
-  "autocomplete.provider": {
-    "versions": {
-      "2.0.0": "getProvider"
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "getProvider"
+      }
     }
   }
-}
 }
