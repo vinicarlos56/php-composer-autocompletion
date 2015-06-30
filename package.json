@@ -1,12 +1,12 @@
 {
   "name": "php-composer-completion",
   "main": "./lib/main",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "autocomplete+ provider for php projects based on composer",
   "keywords": [
       "php","composer","autocomplete","completion","php-completion"
   ],
-  "repository": "https://github.com/atom/php-composer-completion",
+  "repository": "https://github.com/vinicarlos56/php-composer-autocompletion",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
