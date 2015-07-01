@@ -1,5 +1,6 @@
 # php-composer-completion package
-autocomplete provider for php projects based on composer.
+autocomplete+ provider for php projects based on composer.
+
 This package is currently under development and might not work properly with others php providers.
 
 # How it works
