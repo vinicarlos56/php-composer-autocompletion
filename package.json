@@ -1,7 +1,7 @@
 {
   "name": "php-composer-completion",
   "main": "./lib/main",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "autocomplete+ provider for php projects based on composer",
   "keywords": [
     "php",
