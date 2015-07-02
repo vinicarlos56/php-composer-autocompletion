@@ -22,7 +22,7 @@ module.exports =
 
     new Promise (resolve) =>
       if @isLocalVariable(prefix)
-        resolve(@getLocalMethods(editor, prefix))
+        resolve(@getLocalMethods(editor))
       if objectType = @isKnownObject(editor, bufferPosition, prefix)
         @getObjectAvailableMethods(editor, prefix, objectType, resolve)
         
@@ -30,13 +30,12 @@ module.exports =
 
     prefix.match(/\$this->/)
 
-  getLocalMethods: (editor, prefix) ->
+  getLocalMethods: (editor) ->
 
     completions = []
 
     for line in editor.buffer.getLines()
       if matches = line.match(methodRegex)
-        if matches[1].indexOf(prefix)
 
           methodMatches = matches.input.match(fullMethodRegex)
           visibility = methodMatches[1]
@@ -55,21 +54,24 @@ module.exports =
   createMethodSnippet: (method,parametersString) ->
 
     parameters = parametersString.match(/\$\w+/g)
+    mapped = ''
+    parametersLength = 0
 
     if parameters
-
       mapped = parameters.map((item,index) -> "${#{index+2}:#{item}}").join(',')
+      parametersLength = parameters.length
 
-      "#{method}(#{mapped})${#{parameters.length+2}}"
+    "#{method}(#{mapped})${#{parametersLength+2}}"
 
   isKnownObject: (editor,bufferPosition,prefix) ->
 
     currentMethodParams = @getMethodParams(editor,bufferPosition)
 
     for param in currentMethodParams
-      unless param.objectType is undefined
-        regex = "\\$#{param.varName.substr(1)}\\-\\>"
-        return if prefix.match(regex) then param.objectType else false
+      if prefix.indexOf(param.varName) == 0
+        unless param.objectType is undefined
+            regex = "\\$#{param.varName.substr(1)}\\-\\>"
+            return if prefix.match(regex) then param.objectType else false
 
   getMethodParams: (editor,bufferPosition) ->
 
@@ -81,7 +83,7 @@ module.exports =
         parametersString = matches.input.match(/function\s\w+\((.*)\)/)
         parametersSplited = parametersString[1].split(',')
         result = parametersSplited.map( (item) ->
-          words = item.split(' ')
+          words = item.trim().split(' ')
 
           objectType: if words[1] then words[0] else undefined
           varName: if words[1] then words[1] else words[0]
@@ -96,44 +98,54 @@ module.exports =
       for line in editor.buffer.getLines()
         if matches = line.match(regex)
           if lastMatch = matches[1].match(objectType)
-
-            namespace = lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
-
-            script = __dirname + '/../scripts/main.php'
-            autoload = atom.project.getPaths()[0] + '/vendor/autoload.php'
-
-            process = proc.exec "php #{script} #{autoload} '#{namespace}'"
-
-            @compiled = ''
-            @methods = []
-            process.stdout.on 'data', (data) =>
-              @compiled += data
-
-            process.stderr.on 'data', (data) ->
-              console.log data
-
-            process.on 'close', (code) =>
-              try
-                @methods = JSON.parse(@compiled)
-
-                completions = []
-
-                for method in @methods
-                  if method.name.indexOf(prefix)
-                    completions.push(@createCompletion(method))
-
-                resolve(completions)
-              catch error
-                console.log error
-
+            @fetchAndResolveDependencies(lastMatch,prefix,resolve) 
             break
+
+  fetchAndResolveDependencies: (lastMatch, prefix, resolve) ->
+
+    namespace = @parseNamespace(lastMatch) 
+    script = @getScript() 
+    autoload = @getAutoloadPath() 
+
+    process = proc.exec "php #{script} #{autoload} '#{namespace}'"
+
+    @compiled = ''
+    @methods = []
+    process.stdout.on 'data', (data) =>
+      @compiled += data
+
+    process.stderr.on 'data', (data) ->
+      console.log data
+
+    process.on 'close', (code) =>
+      try
+        @methods = JSON.parse(@compiled)
+
+        completions = []
+
+        for method in @methods
+          if method.name.indexOf(prefix)
+            completions.push(@createCompletion(method))
+
+        resolve(completions)
+      catch error
+        console.log error
+
+  getAutoloadPath: ->
+    atom.project.getPaths()[0] + '/vendor/autoload.php'
+
+  getScript: ->
+    __dirname + '/../scripts/main.php'
+
+  parseNamespace: (lastMatch) ->
+    lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
 
   createCompletion: (method) ->
     text: method.name,
     snippet: method.snippet
     displayText: method.name
     type: 'method'
-    leftLabel: "#{method.visibility} #{if method.isStatic then 'static' else ''}"
+    leftLabel: "#{method.visibility}#{if method.isStatic then ' static' else ''}"
     className: "method-#{method.visibility}"
 
 
