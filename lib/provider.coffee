@@ -1,6 +1,7 @@
 proc = require 'child_process'
 
 methodRegex = /function\s(\w+)/
+paramMethodRegex = /function\s\w+\(([\s\S]*)\)/
 fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s\w+\((.*)\)/
 
 module.exports =
@@ -75,21 +76,41 @@ module.exports =
 
   getMethodParams: (editor,bufferPosition) ->
 
+    fullMethodString = @getFullMethodDefinition editor,bufferPosition
+    parametersString = fullMethodString.match(paramMethodRegex)
+
+    unless parametersString is null
+        parametersSplited = parametersString[1].split(',')
+
+        result = parametersSplited.map( (item) ->
+
+            words = item.trim().split(' ')
+
+            objectType: if words[1] then words[0] else undefined
+            varName: if words[1] then words[1] else words[0]
+        )
+
+    return result
+
+  getFullMethodDefinition: (editor,bufferPosition) ->
     lines = editor.buffer.getLines()
     totalLines = lines.length
 
+    inline = [] 
+
     for i in [bufferPosition.row...0]
+
+      inline.push(lines[i]) 
+
       if matches = lines[i].match(methodRegex)
-        parametersString = matches.input.match(/function\s\w+\((.*)\)/)
-        parametersSplited = parametersString[1].split(',')
-        result = parametersSplited.map( (item) ->
-          words = item.trim().split(' ')
+          fullMethodString = inline.reverse().reduce (previous,current) -> 
+            previous.trim()+current.trim()
+          
+          return fullMethodString.match(fullMethodRegex)[0]
 
-          objectType: if words[1] then words[0] else undefined
-          varName: if words[1] then words[1] else words[0]
-        )
+     return ''
 
-        return result
+
 
   getObjectAvailableMethods: (editor,prefix,objectType,resolve)->
 

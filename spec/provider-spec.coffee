@@ -139,3 +139,40 @@ describe "Provider suite", ->
 
         expect(provider.parseNamespace(namespaceWithAs.match(regex)[1].match(objectType)))
             .toEqual('Object\\Space')
+
+    it "gets full method definition", ->
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
+
+        runs ->
+
+            bufferPosition = editor.getLastCursor().getBufferPosition()
+
+            expect(provider.getFullMethodDefinition(editor,bufferPosition))
+                .toEqual('public function thirdMethod(KnownObject $first,Second $second,Third $third)')
+
+            editor.setCursorBufferPosition([2, 0])
+            bufferPosition = editor.getLastCursor().getBufferPosition()
+            expect(provider.getFullMethodDefinition(editor,bufferPosition))
+                .toEqual('')
+
+    # it "matches multiple line method definition correctly", ->
+    #     editor = null
+    #
+    #     waitsForPromise ->
+    #         atom.project.open('sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
+    #
+    #     runs ->
+    #
+    #         bufferPosition = editor.getLastCursor().getBufferPosition()
+    #         expect(provider.getMethodParams(editor,bufferPosition,'$first->')).toEqual('KnownObject')
+    #
+    #         editor.setCursorBufferPosition([25, 0])
+    #         expect(provider.getMethodParams(editor,bufferPosition,'$second->')).toEqual('Second')
+    #
+    #         editor.setCursorBufferPosition([25, 0])
+    #         expect(provider.getMethodParams(editor,bufferPosition,'$third->')).toEqual('Third')
+
+
