@@ -1,4 +1,28 @@
 provider = require '../lib/provider'
+expectedCompletions = [{
+    text : '__construct',
+    snippet : '__construct(${2:$test})${3}',
+    displayText : '__construct',
+    type : 'method',
+    leftLabel : 'undefined',
+    className : 'method-undefined'
+},
+{
+    text : 'firstMethod',
+    snippet : 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
+    displayText : 'firstMethod',
+    type : 'method',
+    leftLabel : 'public',
+    className : 'method-public'
+},
+{
+    text : 'secondParam',
+    snippet : 'secondParam(${2:$firstParam},${3:$second})${4}',
+    displayText : 'secondParam',
+    type : 'method',
+    leftLabel : 'public',
+    className : 'method-public'
+}]
 
 describe "Provider suite", ->
     it "should return the match array if it is a local variable prefix", ->
@@ -96,36 +120,11 @@ describe "Provider suite", ->
     it "gets local methods", ->
         editor = null
 
-        expected = [{
-            text : '__construct',
-            snippet : '__construct(${2:$test})${3}',
-            displayText : '__construct',
-            type : 'method',
-            leftLabel : 'undefined',
-            className : 'method-undefined'
-        },
-        {
-            text : 'firstMethod',
-            snippet : 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
-            displayText : 'firstMethod',
-            type : 'method',
-            leftLabel : 'public',
-            className : 'method-public'
-        },
-        {
-            text : 'secondParam',
-            snippet : 'secondParam(${2:$firstParam},${3:$second})${4}',
-            displayText : 'secondParam',
-            type : 'method',
-            leftLabel : 'public',
-            className : 'method-public'
-        }]
-
         waitsForPromise ->
             atom.project.open('sample/sample.php').then (o) -> editor = o
 
         runs ->
-            expect(provider.getLocalMethods(editor)).toEqual(expected)
+            expect(provider.getLocalMethods(editor)).toEqual(expectedCompletions)
 
     it "parses the namespace", ->
 
@@ -158,21 +157,39 @@ describe "Provider suite", ->
             expect(provider.getFullMethodDefinition(editor,bufferPosition))
                 .toEqual('')
 
-    # it "matches multiple line method definition correctly", ->
-    #     editor = null
-    #
-    #     waitsForPromise ->
-    #         atom.project.open('sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
-    #
-    #     runs ->
-    #
-    #         bufferPosition = editor.getLastCursor().getBufferPosition()
-    #         expect(provider.getMethodParams(editor,bufferPosition,'$first->')).toEqual('KnownObject')
-    #
-    #         editor.setCursorBufferPosition([25, 0])
-    #         expect(provider.getMethodParams(editor,bufferPosition,'$second->')).toEqual('Second')
-    #
-    #         editor.setCursorBufferPosition([25, 0])
-    #         expect(provider.getMethodParams(editor,bufferPosition,'$third->')).toEqual('Third')
+    it "matches multiple line method definition correctly", ->
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
+
+        runs ->
+
+            bufferPosition = editor.getLastCursor().getBufferPosition()
+            expect(provider.isKnownObject(editor,bufferPosition,'$first->')).toEqual('KnownObject')
+
+            editor.setCursorBufferPosition([25, 0])
+            expect(provider.isKnownObject(editor,bufferPosition,'$second->')).toEqual('Second')
+
+            editor.setCursorBufferPosition([25, 0])
+            expect(provider.isKnownObject(editor,bufferPosition,'$third->')).toEqual('Third')
+
+    it "gets local methods correctly with multiline method definition", ->
+        editor = null
+
+        expectedCompletions.push
+            text : 'thirdMethod',
+            snippet : 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
+            displayText : 'thirdMethod',
+            type : 'method',
+            leftLabel : 'public',
+            className : 'method-public'
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-multiple.php').then (o) -> editor = o
+
+        runs ->
+            # console.log provider.getLocalMethods(editor)
+            expect(provider.getLocalMethods(editor)).toEqual(expectedCompletions)
 
 

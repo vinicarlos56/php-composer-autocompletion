@@ -3,6 +3,7 @@ proc = require 'child_process'
 methodRegex = /function\s(\w+)/
 paramMethodRegex = /function\s\w+\(([\s\S]*)\)/
 fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s\w+\((.*)\)/
+openFullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s\w+\(?(.*)?\)?/
 
 module.exports =
   # This will work on JavaScript and CoffeeScript files, but not in js comments.
@@ -34,21 +35,41 @@ module.exports =
   getLocalMethods: (editor) ->
 
     completions = []
+    inline = []
 
     for line in editor.buffer.getLines()
-      if matches = line.match(methodRegex)
+
+      if inline.length == 0
+          ma = null
+
+      if inline.length > 0
+
+          inline.push(line)
+
+          ma = inline.join('').match(methodRegex) 
+
+          if ma
+              inline = []
+      
+      if matches = line.match(methodRegex) || ma
 
           methodMatches = matches.input.match(fullMethodRegex)
-          visibility = methodMatches[1]
-          isStatic = methodMatches[2]
-          parametersString = methodMatches[3]
 
-          completions.push(@createCompletion(
-            name: matches[1]
-            snippet: @createMethodSnippet(matches[1],parametersString)
-            isStatic: isStatic
-            visibility: visibility
-          ))
+          if methodMatches is null
+            inline.push(matches.input)
+
+          unless methodMatches is null
+
+            visibility = methodMatches[1]
+            isStatic = methodMatches[2]
+            parametersString = methodMatches[3]
+
+            completions.push(@createCompletion(
+                name: matches[1]
+                snippet: @createMethodSnippet(matches[1],parametersString)
+                isStatic: isStatic
+                visibility: visibility
+            ))
 
     completions
 
