@@ -1,0 +1,14 @@
+<?php
+
+class ClassName
+{
+    public $publicVar;
+    public static $publicStatic;
+    private $privateVar = '';
+    protected $protectedVar = [];
+
+    const TEST = 2;
+    const TESTINGCONSTANTS = 1;
+
+}
+

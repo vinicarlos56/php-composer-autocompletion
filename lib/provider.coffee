@@ -1,5 +1,7 @@
 proc = require 'child_process'
 
+propertyRegex = /(private|protected|public)\s(static)?\s?(\$\w+)/
+constantRegex = /const\s(\w+)/
 methodRegex = /function\s(\w+)/
 paramMethodRegex = /function\s\w+\(([\s\S]*)\)/
 fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s\w+\((.*)\)/
@@ -27,10 +29,24 @@ module.exports =
         resolve(@getLocalMethods(editor))
       if objectType = @isKnownObject(editor, bufferPosition, prefix)
         @getObjectAvailableMethods(editor, prefix, objectType, resolve)
-        
+
   isLocalVariable: (prefix, bufferPosition) ->
 
     prefix.match(/\$this->/)
+
+
+  getLocalVariables: (editor) ->
+
+    for line in editor.buffer.getLines()
+        if matches = line.match(property)
+            console.log matches #@createCompletion
+                # name: matches[3]
+                # snippet: ''
+                # type: 'property'
+                # isStatic: matches[2] != undefined
+                # visibility: matches[1]
+
+
 
   getLocalMethods: (editor) ->
 
@@ -46,11 +62,11 @@ module.exports =
 
           inline.push(line)
 
-          ma = inline.join('').match(methodRegex) 
+          ma = inline.join('').match(methodRegex)
 
           if ma
               inline = []
-      
+
       if matches = line.match(methodRegex) || ma
 
           methodMatches = matches.input.match(fullMethodRegex)
@@ -117,16 +133,16 @@ module.exports =
     lines = editor.buffer.getLines()
     totalLines = lines.length
 
-    inline = [] 
+    inline = []
 
     for i in [bufferPosition.row...0]
 
-      inline.push(lines[i]) 
+      inline.push(lines[i])
 
       if matches = lines[i].match(methodRegex)
-          fullMethodString = inline.reverse().reduce (previous,current) -> 
+          fullMethodString = inline.reverse().reduce (previous,current) ->
             previous.trim()+current.trim()
-          
+
           return fullMethodString.match(fullMethodRegex)[0]
 
      return ''
@@ -140,14 +156,14 @@ module.exports =
       for line in editor.buffer.getLines()
         if matches = line.match(regex)
           if lastMatch = matches[1].match(objectType)
-            @fetchAndResolveDependencies(lastMatch,prefix,resolve) 
+            @fetchAndResolveDependencies(lastMatch,prefix,resolve)
             break
 
   fetchAndResolveDependencies: (lastMatch, prefix, resolve) ->
 
-    namespace = @parseNamespace(lastMatch) 
-    script = @getScript() 
-    autoload = @getAutoloadPath() 
+    namespace = @parseNamespace(lastMatch)
+    script = @getScript()
+    autoload = @getAutoloadPath()
 
     process = proc.exec "php #{script} #{autoload} '#{namespace}'"
 
@@ -182,13 +198,13 @@ module.exports =
   parseNamespace: (lastMatch) ->
     lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
 
-  createCompletion: (method) ->
-    text: method.name,
-    snippet: method.snippet
-    displayText: method.name
-    type: 'method'
-    leftLabel: "#{method.visibility}#{if method.isStatic then ' static' else ''}"
-    className: "method-#{method.visibility}"
+  createCompletion: (completion) ->
+    text: completion.name,
+    snippet: completion.snippet
+    displayText: completion.name
+    type: completion.type ? 'method'
+    leftLabel: "#{completion.visibility}#{if completion.isStatic then ' static' else ''}"
+    className: "method-#{completion.visibility}"
 
 
   # (optional): called _after_ the suggestion `replacementPrefix` is replaced

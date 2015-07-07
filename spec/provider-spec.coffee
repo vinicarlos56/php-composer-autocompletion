@@ -192,4 +192,17 @@ describe "Provider suite", ->
             # console.log provider.getLocalMethods(editor)
             expect(provider.getLocalMethods(editor)).toEqual(expectedCompletions)
 
+    # it "parses local variables", ->
+    #
+    #     editor = null
+    #     local = []
+    #
+    #     waitsForPromise ->
+    #         atom.project.open('sample/sample-var.php').then (o) -> editor = o
+    #
+    #     runs ->
+    #         local = []
+    #
+    #         expect(provider.getLocalVariables(editor)).toEqual(local)
+
 
