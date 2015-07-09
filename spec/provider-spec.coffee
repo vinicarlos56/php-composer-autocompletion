@@ -24,28 +24,102 @@ expectedCompletions = [{
     className : 'method-public'
 }]
 
-describe "Provider suite", ->
-    it "should return the match array if it is a local variable prefix", ->
-        expect(provider.isLocalVariable('')).toBe(null)
-        expect(provider.isLocalVariable('test')).toBe(null)
-        expect(provider.isLocalVariable('$this')).toBe(null)
-        expect(provider.isLocalVariable('$this->')).toEqual(['$this->'])
+fullExpectedCompletions = [{
+    text: '$publicVar',
+    snippet: '$publicVar${2}',
+    displayText: '$publicVar',
+    type: 'property',
+    leftLabel: 'public',
+    className: 'method-public'
+}, {
+    text: '$publicStatic',
+    snippet: '$publicStatic${2}',
+    displayText: '$publicStatic',
+    type: 'property',
+    leftLabel: 'public static',
+    className: 'method-public'
+}, {
+    text: '$privateVar',
+    snippet: '$privateVar${2}',
+    displayText: '$privateVar',
+    type: 'property',
+    leftLabel: 'private',
+    className: 'method-private'
+}, {
+    text: '$protectedVar',
+    snippet: '$protectedVar${2}',
+    displayText: '$protectedVar',
+    type: 'property',
+    leftLabel: 'protected',
+    className: 'method-protected'
+}, {
+    text: 'TEST',
+    snippet: 'TEST${2}',
+    displayText: 'TEST',
+    type: 'constant',
+    leftLabel: 'undefined',
+    className: 'method-undefined'
+}, {
+    text: 'TESTINGCONSTANTS',
+    snippet: 'TESTINGCONSTANTS${2}',
+    displayText: 'TESTINGCONSTANTS',
+    type: 'constant',
+    leftLabel: 'undefined',
+    className: 'method-undefined'
+}, {
+    text: '__construct',
+    snippet: '__construct(${2:$test})${3}',
+    displayText: '__construct',
+    type: 'method',
+    leftLabel: 'undefined',
+    className: 'method-undefined'
+}, {
+    text: 'firstMethod',
+    snippet: 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
+    displayText: 'firstMethod',
+    type: 'method',
+    leftLabel: 'public',
+    className: 'method-public'
+}, {
+    text: 'secondParam',
+    snippet: 'secondParam(${2:$firstParam},${3:$second})${4}',
+    displayText: 'secondParam',
+    type: 'method',
+    leftLabel: 'public',
+    className: 'method-public'
+}, {
+    text: 'thirdMethod',
+    snippet: 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
+    displayText: 'thirdMethod',
+    type: 'method',
+    leftLabel: 'public',
+    className: 'method-public'
+}]
 
+describe "Provider suite", ->
+    
     it "creates the method snippet correctly given the method and parameters string", ->
 
-        expect(provider.createMethodSnippet('testMethod',''))
+        fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s(\w+)\((.*)\)/
+
+        matches = "public function testMethod() {".match(fullMethodRegex)
+        expect(provider.createMethodSnippet(matches))
             .toEqual('testMethod()${2}')
 
-        expect(provider.createMethodSnippet('testMethod','$simpleParam'))
+        matches = "public function testMethod($simpleParam) {".match(fullMethodRegex)
+        expect(provider.createMethodSnippet(matches))
             .toEqual('testMethod(${2:$simpleParam})${3}')
 
-        expect(provider.createMethodSnippet('testMethod','Typed $simpleParam'))
+        matches = "public function testMethod(Typed $simpleParam) {".match(fullMethodRegex)
+        expect(provider.createMethodSnippet(matches))
             .toEqual('testMethod(${2:$simpleParam})${3}')
 
-        expect(provider.createMethodSnippet('testMethod','$simpleParam, $secondParam'))
+        matches = "public function testMethod($simpleParam, $secondParam) {".match(fullMethodRegex)
+        expect(provider.createMethodSnippet(matches))
             .toEqual('testMethod(${2:$simpleParam},${3:$secondParam})${4}')
 
-        expect(provider.createMethodSnippet('testMethod','$simpleParam, Typed $secondParam'))
+        matches = "public function testMethod($simpleParam, Typed $secondParam) {".match(fullMethodRegex)
+        expect(provider.createMethodSnippet(matches))
             .toEqual('testMethod(${2:$simpleParam},${3:$secondParam})${4}')
 
     it "gets the params for the current method", ->
@@ -117,15 +191,6 @@ describe "Provider suite", ->
             editor.setCursorBufferPosition([18, 0])
             expect(provider.isKnownObject(editor,bufferPosition,'$second->')).toEqual('Second')
 
-    it "gets local methods", ->
-        editor = null
-
-        waitsForPromise ->
-            atom.project.open('sample/sample.php').then (o) -> editor = o
-
-        runs ->
-            expect(provider.getLocalMethods(editor)).toEqual(expectedCompletions)
-
     it "parses the namespace", ->
 
         regex = /^use(.*)$/
@@ -190,21 +255,7 @@ describe "Provider suite", ->
 
         runs ->
             # console.log provider.getLocalMethods(editor)
-            expect(provider.getLocalMethods(editor)).toEqual(expectedCompletions)
-
-    # it "parses local variables", ->
-    #
-    #     editor = null
-    #     local = []
-    #
-    #     waitsForPromise ->
-    #         atom.project.open('sample/sample-var.php').then (o) -> editor = o
-    #
-    #     runs ->
-    #         local = []
-    #
-    #         expect(provider.getLocalVariables(editor)).toEqual(local)
-
+            expect(provider.getLocalAvailableCompletions(editor)).toEqual(expectedCompletions)
 
     it "match current context", ->
         expect(provider.matchCurrentContext('$this->')).toNotEqual(null)
@@ -223,6 +274,6 @@ describe "Provider suite", ->
         runs ->
             local = []
 
-            expect(provider.getLocalAvailableCompletions(editor)).toEqual(null)
+            expect(provider.getLocalAvailableCompletions(editor)).toEqual(fullExpectedCompletions)
 
 
