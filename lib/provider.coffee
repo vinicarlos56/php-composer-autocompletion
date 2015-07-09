@@ -35,10 +35,25 @@ module.exports =
     prefix.match(/\$this->/)
 
 
+  matchCurrentContext: (prefix) ->
+
+      prefix.match(/(\$this->|parent::|self::)/)
+
+  getLocalAvailableCompletions: (editor) ->
+
+    for line in editor.buffer.getLines()
+        if matches = line.match(propertyRegex)
+            console.log matches 
+        else if matches = line.match(constantRegex)
+            console.log matches 
+        else if matches = line.match(methodRegex)
+            console.log matches 
+    
+
   getLocalVariables: (editor) ->
 
     for line in editor.buffer.getLines()
-        if matches = line.match(property)
+        if matches = line.match(propertyRegex)
             console.log matches #@createCompletion
                 # name: matches[3]
                 # snippet: ''

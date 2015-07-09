@@ -206,3 +206,23 @@ describe "Provider suite", ->
     #         expect(provider.getLocalVariables(editor)).toEqual(local)
 
 
+    it "match current context", ->
+        expect(provider.matchCurrentContext('$this->')).toNotEqual(null)
+        expect(provider.matchCurrentContext('parent::')).toNotEqual(null)
+        expect(provider.matchCurrentContext('self::')).toNotEqual(null)
+        expect(provider.matchCurrentContext('other::')).toEqual(null)
+
+    it "gets local available completions", ->
+
+        editor = null
+        local = []
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-full.php').then (o) -> editor = o
+
+        runs ->
+            local = []
+
+            expect(provider.getLocalAvailableCompletions(editor)).toEqual(null)
+
+
