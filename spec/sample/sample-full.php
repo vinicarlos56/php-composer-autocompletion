@@ -1,6 +1,6 @@
-<?php
+<?php namespace Full\Name\Space;
 
-class TestClass
+class TestClass extends SomeParent implements SomeInterface, OtherInterface
 {
     public $publicVar;
     public static $publicStatic;

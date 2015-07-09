@@ -1,6 +1,6 @@
 <?php
 
-class ClassName
+class ClassName extends SomeParent
 {
     public $publicVar;
     public static $publicStatic;

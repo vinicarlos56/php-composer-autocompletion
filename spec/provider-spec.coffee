@@ -1,4 +1,6 @@
 provider = require '../lib/provider'
+# mockery = require 'mockery'
+
 expectedCompletions = [{
     text : '__construct',
     snippet : '__construct(${2:$test})${3}',
@@ -26,28 +28,28 @@ expectedCompletions = [{
 
 fullExpectedCompletions = [{
     text: '$publicVar',
-    snippet: '$publicVar${2}',
+    snippet: 'publicVar${2}',
     displayText: '$publicVar',
     type: 'property',
     leftLabel: 'public',
     className: 'method-public'
 }, {
     text: '$publicStatic',
-    snippet: '$publicStatic${2}',
+    snippet: 'publicStatic${2}',
     displayText: '$publicStatic',
     type: 'property',
     leftLabel: 'public static',
     className: 'method-public'
 }, {
     text: '$privateVar',
-    snippet: '$privateVar${2}',
+    snippet: 'privateVar${2}',
     displayText: '$privateVar',
     type: 'property',
     leftLabel: 'private',
     className: 'method-private'
 }, {
     text: '$protectedVar',
-    snippet: '$protectedVar${2}',
+    snippet: 'protectedVar${2}',
     displayText: '$protectedVar',
     type: 'property',
     leftLabel: 'protected',
@@ -276,4 +278,34 @@ describe "Provider suite", ->
 
             expect(provider.getLocalAvailableCompletions(editor)).toEqual(fullExpectedCompletions)
 
+    it "gets parent class name", ->
+
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-var.php').then (o) -> editor = o
+
+        runs ->
+            expect(provider.getParentClassName(editor)).toEqual('\\SomeParent')
+
+    # it "works", ->
+    #
+    #     procStub = {}
+    #
+    #     console.log mockery.registerMock('child_process', procStub)
+    #
+    #     lastMatch =
+    #         input: 'teste'
+    #
+        # expect(provider.fetchAndResolveDependencies(lastMatch,'teste','')).toBe(procStub)
+
+    # it "gets parent class name with full namespace", ->
+    #
+    #     editor = null
+    #
+    #     waitsForPromise ->
+    #         atom.project.open('sample/sample-full.php').then (o) -> editor = o
+    #
+    #     runs ->
+    #         expect(provider.getParentClassName(editor)).toEqual('Full\\Name\\Space\\SomeParent')
 

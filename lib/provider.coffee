@@ -1,6 +1,6 @@
 proc = require 'child_process'
 
-propertyRegex = /(private|protected|public)\s(static)?\s?(\$\w+)/
+propertyRegex = /(private|protected|public)\s(static)?\s?\$(\w+)/
 constantRegex = /const\s(\w+)/
 methodRegex = /function\s(\w+)/
 paramMethodRegex = /function\s\w+\(([\s\S]*)\)/
@@ -25,11 +25,15 @@ module.exports =
         prefix = @getPrefix(editor, bufferPosition)
 
         new Promise (resolve) =>
-            if @matchCurrentContext(prefix)
-                resolve(@getLocalAvailableCompletions(editor))
+            if matches = @matchCurrentContext(prefix)
+                if matches[0] == "$this->"
+                    resolve(@getLocalAvailableCompletions(editor))
+                else if matches[0] == "parent::"
+                    objectType = @getParentClassName(editor)
+                    @getObjectAvailableMethods(editor, prefix, objectType, resolve)
             else if objectType = @isKnownObject(editor, bufferPosition, prefix)
                 @getObjectAvailableMethods(editor, prefix, objectType, resolve)
-            else 
+            else
                 resolve([])
 
     matchCurrentContext: (prefix) ->
@@ -56,9 +60,9 @@ module.exports =
                     inline = []
 
             if matches = line.match(propertyRegex)
-                completions.push(@createVariableCompletion matches) 
+                completions.push(@createVariableCompletion matches)
             else if matches = line.match(constantRegex)
-                completions.push(@createConstantCompletion matches) 
+                completions.push(@createConstantCompletion matches)
             else if matches = line.match(methodRegex) || ma
                 methodMatches = matches.input.match(fullMethodRegex)
 
@@ -66,33 +70,33 @@ module.exports =
                     inline.push(matches.input)
 
                 unless methodMatches is null
-                    completions.push(@createMehodCompletion methodMatches) 
-        
+                    completions.push(@createMehodCompletion methodMatches)
+
         return completions
 
     createVariableCompletion: (matches) ->
         @createCompletion
-            name: matches[3]
-            snippet: "#{matches[3]}${2}" 
+            name: "$"+matches[3]
+            snippet: "#{matches[3]}${2}"
             isStatic: matches[2] != undefined
-            visibility: matches[1] 
+            visibility: matches[1]
             type: 'property'
 
     createConstantCompletion: (matches) ->
         @createCompletion
             name: matches[1]
-            snippet: "#{matches[1]}${2}" 
-            isStatic: false 
-            visibility: undefined 
+            snippet: "#{matches[1]}${2}"
+            isStatic: false
+            visibility: undefined
             type: 'constant'
-      
+
 
     createMehodCompletion: (matches) ->
         @createCompletion
             name: matches[3]
             snippet: @createMethodSnippet(matches)
-            isStatic: matches[2] != undefined 
-            visibility: matches[1] 
+            isStatic: matches[2] != undefined
+            visibility: matches[1]
             type: 'method'
 
 
@@ -160,8 +164,13 @@ module.exports =
     getObjectAvailableMethods: (editor,prefix,objectType,resolve)->
 
         regex = /^use(.*)$/
+        currentNamespace = ''
 
         for line in editor.buffer.getLines()
+
+            if namespaceMatch = line.match(/namespace\s+(.+);/)
+                currentNamespace += namespaceMatch[1]
+
             if matches = line.match(regex)
                 if lastMatch = matches[1].match(objectType)
                     @fetchAndResolveDependencies(lastMatch,prefix,resolve)
@@ -214,6 +223,22 @@ module.exports =
         leftLabel: "#{completion.visibility}#{if completion.isStatic then ' static' else ''}"
         className: "method-#{completion.visibility}"
 
+
+    getParentClassName: (editor) ->
+
+        namespace = ''
+
+        for line in editor.buffer.getLines()
+
+            # namespaceMatch = line.match(/namespace\s+(.+);/)
+            #
+            # if namespaceMatch
+            #     namespace = namespaceMatch[1]
+
+            classMatch = line.match(/class\s\w+\s?extends?\s?(\w+)?/)
+
+            unless classMatch is null
+                return "\\#{classMatch[1]}"
 
     # (optional): called _after_ the suggestion `replacementPrefix` is replaced
     # by the suggestion `text` in the buffer
