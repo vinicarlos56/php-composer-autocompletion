@@ -2,28 +2,33 @@ provider = require '../lib/provider'
 # mockery = require 'mockery'
 
 expectedCompletions = [{
-    text : '__construct',
-    snippet : '__construct(${2:$test})${3}',
-    displayText : '__construct',
-    type : 'method',
-    leftLabel : 'undefined',
-    className : 'method-undefined'
-},
-{
-    text : 'firstMethod',
-    snippet : 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
-    displayText : 'firstMethod',
-    type : 'method',
-    leftLabel : 'public',
-    className : 'method-public'
-},
-{
-    text : 'secondParam',
-    snippet : 'secondParam(${2:$firstParam},${3:$second})${4}',
-    displayText : 'secondParam',
-    type : 'method',
-    leftLabel : 'public',
-    className : 'method-public'
+    text: '__construct($test)',
+    snippet: '__construct(${2:$test})${3}',
+    displayText: '__construct($test)',
+    type: 'method',
+    leftLabel: 'undefined',
+    className: 'method-undefined'
+}, {
+    text: 'firstMethod($firstParam, $secondParam)',
+    snippet: 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
+    displayText: 'firstMethod($firstParam, $secondParam)',
+    type: 'method',
+    leftLabel: 'public',
+    className: 'method-public'
+}, {
+    text: 'secondParam(KnownObject $firstParam, Second $second)',
+    snippet: 'secondParam(${2:$firstParam},${3:$second})${4}',
+    displayText: 'secondParam(KnownObject $firstParam, Second $second)',
+    type: 'method',
+    leftLabel: 'public',
+    className: 'method-public'
+}, {
+    text: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
+    snippet: 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
+    displayText: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
+    type: 'method',
+    leftLabel: 'public',
+    className: 'method-public'
 }]
 
 fullExpectedCompletions = [{
@@ -69,30 +74,30 @@ fullExpectedCompletions = [{
     leftLabel: 'undefined',
     className: 'method-undefined'
 }, {
-    text: '__construct',
+    text: '__construct($test)',
     snippet: '__construct(${2:$test})${3}',
-    displayText: '__construct',
+    displayText: '__construct($test)',
     type: 'method',
     leftLabel: 'undefined',
     className: 'method-undefined'
 }, {
-    text: 'firstMethod',
+    text: 'firstMethod($firstParam, $secondParam)',
     snippet: 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
-    displayText: 'firstMethod',
+    displayText: 'firstMethod($firstParam, $secondParam)',
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
 }, {
-    text: 'secondParam',
+    text: 'secondParam(KnownObject $firstParam, Second $second)',
     snippet: 'secondParam(${2:$firstParam},${3:$second})${4}',
-    displayText: 'secondParam',
+    displayText: 'secondParam(KnownObject $firstParam, Second $second)',
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
 }, {
-    text: 'thirdMethod',
+    text: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
     snippet: 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
-    displayText: 'thirdMethod',
+    displayText: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
@@ -244,19 +249,10 @@ describe "Provider suite", ->
     it "gets local methods correctly with multiline method definition", ->
         editor = null
 
-        expectedCompletions.push
-            text : 'thirdMethod',
-            snippet : 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
-            displayText : 'thirdMethod',
-            type : 'method',
-            leftLabel : 'public',
-            className : 'method-public'
-
         waitsForPromise ->
             atom.project.open('sample/sample-multiple.php').then (o) -> editor = o
 
         runs ->
-            # console.log provider.getLocalMethods(editor)
             expect(provider.getLocalAvailableCompletions(editor)).toEqual(expectedCompletions)
 
     it "match current context", ->

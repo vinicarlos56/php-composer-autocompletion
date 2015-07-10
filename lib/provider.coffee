@@ -6,7 +6,7 @@ methodRegex = /function\s(\w+)/
 paramMethodRegex = /function\s\w+\(([\s\S]*)\)/
 fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s(\w+)\((.*)\)/
 openFullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s\w+\(?(.*)?\)?/
-
+methodDisplayTextRegex = /(public|private|protected)?\s?(static)?\s?function\s(\w+\s?\((.*)\))/
 module.exports =
     # This will work on JavaScript and CoffeeScript files, but not in js comments.
     selector: '.source.php'
@@ -27,10 +27,31 @@ module.exports =
         new Promise (resolve) =>
             if matches = @matchCurrentContext(prefix)
                 if matches[0] == "$this->"
-                    resolve(@getLocalAvailableCompletions(editor))
+
+                    local = @getLocalAvailableCompletions(editor)
+
+                    objectType = @getParentClassName(editor)
+
+                    mergeWithLocal = (inheritedCompletions) ->
+                        for completion in inheritedCompletions
+                            completion.rightLabel = '(inherited)'
+                            for localCompletion in local
+                                if localCompletion.text == completion.text
+                                    index = local.indexOf(localCompletion)
+                                    local.splice index, 1
+
+                        resolve(local.concat(inheritedCompletions))
+
+                    @getObjectAvailableMethods(editor, prefix, objectType, mergeWithLocal)
                 else if matches[0] == "parent::"
                     objectType = @getParentClassName(editor)
-                    @getObjectAvailableMethods(editor, prefix, objectType, resolve)
+                    setAsInherited = (completions) ->
+                        for completion in completions
+                            completion.rightLabel = '(inherited)'
+
+                        resolve(completions)
+
+                    @getObjectAvailableMethods(editor, prefix, objectType, setAsInherited)
             else if objectType = @isKnownObject(editor, bufferPosition, prefix)
                 @getObjectAvailableMethods(editor, prefix, objectType, resolve)
             else
@@ -93,7 +114,7 @@ module.exports =
 
     createMehodCompletion: (matches) ->
         @createCompletion
-            name: matches[3]
+            name: @createMethodDisplayText matches.input
             snippet: @createMethodSnippet(matches)
             isStatic: matches[2] != undefined
             visibility: matches[1]
@@ -111,6 +132,14 @@ module.exports =
             parametersLength = parameters.length
 
         "#{matches[3]}(#{mapped})${#{parametersLength+2}}"
+
+    createMethodDisplayText: (input) ->
+
+        matches = input.match(methodDisplayTextRegex)
+        formattedParams = matches[4].split(',').map( (item) -> item.trim()).join(', ')
+
+        unless matches is null
+            matches[3].replace matches[4], formattedParams
 
 
     isKnownObject: (editor,bufferPosition,prefix) ->
