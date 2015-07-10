@@ -8,6 +8,7 @@ expectedCompletions = [{
     type: 'method',
     leftLabel: 'undefined',
     className: 'method-undefined'
+    isStatic: false
 }, {
     text: 'firstMethod($firstParam, $secondParam)',
     snippet: 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
@@ -15,6 +16,7 @@ expectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false
 }, {
     text: 'secondParam(KnownObject $firstParam, Second $second)',
     snippet: 'secondParam(${2:$firstParam},${3:$second})${4}',
@@ -22,6 +24,7 @@ expectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false
 }, {
     text: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
     snippet: 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
@@ -29,6 +32,7 @@ expectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false
 }]
 
 fullExpectedCompletions = [{
@@ -38,6 +42,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false
 }, {
     text: '$publicStatic',
     snippet: 'publicStatic${2}',
@@ -45,6 +50,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'public static',
     className: 'method-public'
+    isStatic: true 
 }, {
     text: '$privateVar',
     snippet: 'privateVar${2}',
@@ -52,6 +58,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'private',
     className: 'method-private'
+    isStatic: false 
 }, {
     text: '$protectedVar',
     snippet: 'protectedVar${2}',
@@ -59,6 +66,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'protected',
     className: 'method-protected'
+    isStatic: false 
 }, {
     text: 'TEST',
     snippet: 'TEST${2}',
@@ -66,6 +74,7 @@ fullExpectedCompletions = [{
     type: 'constant',
     leftLabel: 'undefined',
     className: 'method-undefined'
+    isStatic: false 
 }, {
     text: 'TESTINGCONSTANTS',
     snippet: 'TESTINGCONSTANTS${2}',
@@ -73,6 +82,7 @@ fullExpectedCompletions = [{
     type: 'constant',
     leftLabel: 'undefined',
     className: 'method-undefined'
+    isStatic: false 
 }, {
     text: '__construct($test)',
     snippet: '__construct(${2:$test})${3}',
@@ -80,6 +90,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'undefined',
     className: 'method-undefined'
+    isStatic: false 
 }, {
     text: 'firstMethod($firstParam, $secondParam)',
     snippet: 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
@@ -87,6 +98,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false 
 }, {
     text: 'secondParam(KnownObject $firstParam, Second $second)',
     snippet: 'secondParam(${2:$firstParam},${3:$second})${4}',
@@ -94,6 +106,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false 
 }, {
     text: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
     snippet: 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
@@ -101,6 +114,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
+    isStatic: false 
 }]
 
 describe "Provider suite", ->
@@ -176,11 +190,13 @@ describe "Provider suite", ->
             type: 'method'
             leftLabel: 'public'
             className: 'method-public'
+            isStatic: false
 
         expect(provider.createCompletion(method)).toEqual(expected)
 
         method.isStatic = true
         expected.leftLabel = 'public static'
+        expected.isStatic = true  
 
         expect(provider.createCompletion(method)).toEqual(expected)
 

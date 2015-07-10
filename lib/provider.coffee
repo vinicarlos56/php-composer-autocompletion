@@ -28,7 +28,7 @@ module.exports =
             if matches = @matchCurrentContext(prefix)
                 if matches[0] == "$this->"
 
-                    local = @getLocalAvailableCompletions(editor)
+                    local = @getLocalAvailableCompletions(editor,prefix)
 
                     objectType = @getParentClassName(editor)
 
@@ -52,7 +52,7 @@ module.exports =
 
                     @getObjectAvailableMethods(editor, prefix, objectType, setAsInherited)
                 else if matches[0] == "self::"
-                    completions = @getLocalAvailableCompletions(editor).filter((item) -> item.isStatic)
+                    completions = @getLocalAvailableCompletions(editor,prefix).filter((item) -> item.isStatic)
                     resolve(completions)
             else if objectType = @isKnownObject(editor, bufferPosition, prefix)
                 @getObjectAvailableMethods(editor, prefix, objectType, resolve)
@@ -63,10 +63,15 @@ module.exports =
 
         prefix.match(/(\$this->|parent::|self::)/)
 
-    getLocalAvailableCompletions: (editor) ->
+    getLocalAvailableCompletions: (editor,prefix) ->
 
         inline = []
         completions = []
+        varPrefix = ''
+
+        #WTF???
+        if  prefix.search('self::') or prefix.search('parent::')
+            varPrefix = '$'
 
         for line in editor.buffer.getLines()
 
@@ -83,7 +88,7 @@ module.exports =
                     inline = []
 
             if matches = line.match(propertyRegex)
-                completions.push(@createVariableCompletion matches)
+                completions.push(@createVariableCompletion(matches, varPrefix))
             else if matches = line.match(constantRegex)
                 completions.push(@createConstantCompletion matches)
             else if matches = line.match(methodRegex) || ma
@@ -97,10 +102,10 @@ module.exports =
 
         return completions
 
-    createVariableCompletion: (matches) ->
+    createVariableCompletion: (matches,varPrefix = '') ->
         @createCompletion
             name: "$"+matches[3]
-            snippet: "#{matches[3]}${2}"
+            snippet: "#{varPrefix}#{matches[3]}${2}"
             isStatic: matches[2] != undefined
             visibility: matches[1]
             type: 'property'
@@ -278,6 +283,7 @@ module.exports =
     # (optional): called _after_ the suggestion `replacementPrefix` is replaced
     # by the suggestion `text` in the buffer
     onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
+        console.log triggerPosition, suggestion
 
     # (optional): called when your provider needs to be cleaned up. Unsubscribe
     # from things, kill any processes, etc.
