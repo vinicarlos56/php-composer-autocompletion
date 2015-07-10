@@ -51,10 +51,13 @@ module.exports =
                         resolve(completions)
 
                     @getObjectAvailableMethods(editor, prefix, objectType, setAsInherited)
+                else if matches[0] == "self::"
+                    completions = @getLocalAvailableCompletions(editor).filter((item) -> item.isStatic)
+                    resolve(completions)
             else if objectType = @isKnownObject(editor, bufferPosition, prefix)
                 @getObjectAvailableMethods(editor, prefix, objectType, resolve)
             else
-                resolve([])
+                    resolve([])
 
     matchCurrentContext: (prefix) ->
 
@@ -253,6 +256,7 @@ module.exports =
         type: completion.type ? 'method',
         leftLabel: "#{completion.visibility}#{if completion.isStatic then ' static' else ''}",
         className: "method-#{completion.visibility}"
+        isStatic: completion.isStatic
 
 
     getParentClassName: (editor) ->
