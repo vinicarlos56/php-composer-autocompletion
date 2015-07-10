@@ -37,8 +37,7 @@ module.exports =
                             completion.rightLabel = '(inherited)'
                             for localCompletion in local
                                 if localCompletion.text == completion.text
-                                    index = local.indexOf(localCompletion)
-                                    local.splice index, 1
+                                    localCompletion.rightLabel = '(override)' # don't have to remove?
 
                         resolve(local.concat(inheritedCompletions))
 
@@ -211,10 +210,12 @@ module.exports =
         script = @getScript()
         autoload = @getAutoloadPath()
 
+        # console.log "php #{script} #{autoload} '#{namespace}'"
+
         process = proc.exec "php #{script} #{autoload} '#{namespace}'"
 
         @compiled = ''
-        @methods = []
+        @availableResources = []
         process.stdout.on 'data', (data) =>
             @compiled += data
 
@@ -223,14 +224,15 @@ module.exports =
 
         process.on 'close', (code) =>
             try
-                @methods = JSON.parse(@compiled)
+                @availableResources = JSON.parse(@compiled)
 
                 completions = []
 
-                for method in @methods
-                    if method.name.indexOf(prefix)
-                        completions.push(@createCompletion(method))
+                for resource in @availableResources
+                    if resource.name.indexOf(prefix)
+                        completions.push(@createCompletion(resource))
 
+                # console.log completions
                 resolve(completions)
             catch error
                 console.log error
@@ -246,10 +248,10 @@ module.exports =
 
     createCompletion: (completion) ->
         text: completion.name,
-        snippet: completion.snippet
-        displayText: completion.name
-        type: completion.type ? 'method'
-        leftLabel: "#{completion.visibility}#{if completion.isStatic then ' static' else ''}"
+        snippet: completion.snippet,
+        displayText: completion.name,
+        type: completion.type ? 'method',
+        leftLabel: "#{completion.visibility}#{if completion.isStatic then ' static' else ''}",
         className: "method-#{completion.visibility}"
 
 
