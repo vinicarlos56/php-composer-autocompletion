@@ -1,7 +1,7 @@
 {
   "name": "php-composer-completion",
   "main": "./lib/main",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "autocomplete+ provider for php projects based on composer",
   "keywords": [
     "php",
@@ -15,8 +15,7 @@
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "providedServices": {
     "autocomplete.provider": {
       "versions": {
