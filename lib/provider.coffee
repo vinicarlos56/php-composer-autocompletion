@@ -52,7 +52,7 @@ module.exports =
 
                     @getObjectAvailableMethods(editor, prefix, objectType, setAsInherited)
                 else if matches[0] == "self::"
-                    completions = @getLocalAvailableCompletions(editor,prefix).filter((item) -> item.isStatic)
+                    completions = @getLocalAvailableCompletions(editor).filter((item) -> item.isStatic)
                     resolve(completions)
             else if objectType = @isKnownObject(editor, bufferPosition, prefix)
                 @getObjectAvailableMethods(editor, prefix, objectType, resolve)
@@ -63,15 +63,10 @@ module.exports =
 
         prefix.match(/(\$this->|parent::|self::)/)
 
-    getLocalAvailableCompletions: (editor,prefix) ->
+    getLocalAvailableCompletions: (editor) ->
 
         inline = []
         completions = []
-        varPrefix = ''
-
-        #WTF???
-        if  prefix.search('self::') or prefix.search('parent::')
-            varPrefix = '$'
 
         for line in editor.buffer.getLines()
 
@@ -88,7 +83,7 @@ module.exports =
                     inline = []
 
             if matches = line.match(propertyRegex)
-                completions.push(@createVariableCompletion(matches, varPrefix))
+                completions.push(@createVariableCompletion(matches))
             else if matches = line.match(constantRegex)
                 completions.push(@createConstantCompletion matches)
             else if matches = line.match(methodRegex) || ma
@@ -102,10 +97,10 @@ module.exports =
 
         return completions
 
-    createVariableCompletion: (matches,varPrefix = '') ->
+    createVariableCompletion: (matches) ->
         @createCompletion
             name: "$"+matches[3]
-            snippet: "#{varPrefix}#{matches[3]}${2}"
+            snippet: "#{matches[3]}${2}"
             isStatic: matches[2] != undefined
             visibility: matches[1]
             type: 'property'
