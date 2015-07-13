@@ -10,14 +10,16 @@ Currently the features provided are:
 
 - Method resolution for the current class (i.e. $this->).
 - Method resolution for any dependency set as a method parameter, so if your method parameter relies on an interface, or a class the methods will pop up when you try to call it within that method.
-
-# todo
-This is an experimental package yet and there are a lot of features missing, the ones I'm planning to the next beta release are:
 - Correct resolution for static methods
 - Support for self and parent keywords
 - Variables and constants
 - Inherited methods
+
+# todo
+This is an experimental package yet and there are a lot of features missing, the ones I'm planning to the next beta release are:
 - Resolution for explicit property attribution via constructor
+- Access to static resources for a given class name
+- Methods from interfaces
 
 # bugs
 If you find any bugs, or have any proposal please feel free to open an issue and I'll try to help as soon as possible.
