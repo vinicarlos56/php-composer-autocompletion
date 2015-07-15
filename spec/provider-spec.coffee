@@ -1,5 +1,7 @@
-provider = require '../lib/provider'
-# mockery = require 'mockery'
+mockery = require 'mockery'
+mockSpawn = require '/usr/local/lib/node_modules/mock-spawn'
+provider = {}
+spawn = {}
 
 expectedCompletions = [{
     text: '__construct($test)',
@@ -50,7 +52,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'public static',
     className: 'method-public'
-    isStatic: true 
+    isStatic: true
 }, {
     text: '$privateVar',
     snippet: 'privateVar${2}',
@@ -58,7 +60,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'private',
     className: 'method-private'
-    isStatic: false 
+    isStatic: false
 }, {
     text: '$protectedVar',
     snippet: 'protectedVar${2}',
@@ -66,7 +68,7 @@ fullExpectedCompletions = [{
     type: 'property',
     leftLabel: 'protected',
     className: 'method-protected'
-    isStatic: false 
+    isStatic: false
 }, {
     text: 'TEST',
     snippet: 'TEST${2}',
@@ -74,7 +76,7 @@ fullExpectedCompletions = [{
     type: 'constant',
     leftLabel: 'undefined',
     className: 'method-undefined'
-    isStatic: false 
+    isStatic: false
 }, {
     text: 'TESTINGCONSTANTS',
     snippet: 'TESTINGCONSTANTS${2}',
@@ -82,7 +84,7 @@ fullExpectedCompletions = [{
     type: 'constant',
     leftLabel: 'undefined',
     className: 'method-undefined'
-    isStatic: false 
+    isStatic: false
 }, {
     text: '__construct($test)',
     snippet: '__construct(${2:$test})${3}',
@@ -90,7 +92,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'undefined',
     className: 'method-undefined'
-    isStatic: false 
+    isStatic: false
 }, {
     text: 'firstMethod($firstParam, $secondParam)',
     snippet: 'firstMethod(${2:$firstParam},${3:$secondParam})${4}',
@@ -98,7 +100,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
-    isStatic: false 
+    isStatic: false
 }, {
     text: 'secondParam(KnownObject $firstParam, Second $second)',
     snippet: 'secondParam(${2:$firstParam},${3:$second})${4}',
@@ -106,7 +108,7 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
-    isStatic: false 
+    isStatic: false
 }, {
     text: 'thirdMethod(KnownObject $first, Second $second, Third $third)',
     snippet: 'thirdMethod(${2:$first},${3:$second},${4:$third})${5}',
@@ -114,11 +116,27 @@ fullExpectedCompletions = [{
     type: 'method',
     leftLabel: 'public',
     className: 'method-public'
-    isStatic: false 
+    isStatic: false
 }]
 
 describe "Provider suite", ->
-    
+
+    beforeEach ->
+        providerPath = '../lib/provider'
+        verbose = false
+        spawn = mockSpawn(verbose)
+        mockery.enable({ useCleanCache: true })
+        mockery.registerMock('child_process', { spawn: spawn })
+        mockery.registerAllowable(providerPath, true);
+
+        provider = require providerPath
+
+
+    afterEach ->
+        mockery.deregisterAll()
+        mockery.resetCache()
+        mockery.disable()
+
     it "creates the method snippet correctly given the method and parameters string", ->
 
         fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s(\w+)\((.*)\)/
@@ -196,7 +214,7 @@ describe "Provider suite", ->
 
         method.isStatic = true
         expected.leftLabel = 'public static'
-        expected.isStatic = true  
+        expected.isStatic = true
 
         expect(provider.createCompletion(method)).toEqual(expected)
 
@@ -300,24 +318,37 @@ describe "Provider suite", ->
         runs ->
             expect(provider.getParentClassName(editor)).toEqual('\\SomeParent')
 
-    # it "works", ->
-    #
-    #     procStub = {}
-    #
-    #     console.log mockery.registerMock('child_process', procStub)
-    #
-    #     lastMatch =
-    #         input: 'teste'
-    #
-        # expect(provider.fetchAndResolveDependencies(lastMatch,'teste','')).toBe(procStub)
+    it "creates method display text", ->
 
-    # it "gets parent class name with full namespace", ->
-    #
-    #     editor = null
-    #
-    #     waitsForPromise ->
-    #         atom.project.open('sample/sample-full.php').then (o) -> editor = o
-    #
-    #     runs ->
-    #         expect(provider.getParentClassName(editor)).toEqual('Full\\Name\\Space\\SomeParent')
+        expect(provider.createMethodDisplayText('not a method'))
+            .toEqual(undefined)
+        expect(provider.createMethodDisplayText('public function testMethod()'))
+            .toEqual('testMethod()')
+        expect(provider.createMethodDisplayText('public function testMethod($param)'))
+            .toEqual('testMethod($param)')
+        expect(provider.createMethodDisplayText('public function testMethod(Typed $param)'))
+            .toEqual('testMethod(Typed $param)')
+        expect(provider.createMethodDisplayText('public function testMethod(Typed $param, Second $param)'))
+            .toEqual('testMethod(Typed $param, Second $param)')
+        expect(provider.createMethodDisplayText('public function testMethod(Typed $param,Second $param)'))
+            .toEqual('testMethod(Typed $param, Second $param)')
+        expect(provider.createMethodDisplayText('public function testMethod(  Typed $param,      Second $param)'))
+            .toEqual('testMethod(Typed $param, Second $param)')
+        expect(provider.createMethodDisplayText('public function testMethod(  Typed $param,    Second $param,    Third  $p)'))
+            .toEqual('testMethod(Typed $param, Second $param, Third $p)')
 
+    it "works", ->
+
+        resolve = (completions) ->
+            console.log completions
+
+        lastMatch =
+            input: '\\Obj as Teste;'
+
+        spawn.sequence.add(spawn.simple(1,'[{"name":"teste"}]'))
+
+        provider.fetchAndResolveDependencies(lastMatch,'teste',resolve)
+
+        expect(spawn.calls.length).toEqual(1)
+        expect(spawn.calls[0].command).toEqual('php')
+        expect(spawn.calls[0].args).toEqual([provider.getScript(), provider.getAutoloadPath(), 'Obj'])

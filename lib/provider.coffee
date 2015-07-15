@@ -7,6 +7,7 @@ paramMethodRegex = /function\s\w+\(([\s\S]*)\)/
 fullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s(\w+)\((.*)\)/
 openFullMethodRegex = /(public|private|protected)?\s?(static)?\s?function\s\w+\(?(.*)?\)?/
 methodDisplayTextRegex = /(public|private|protected)?\s?(static)?\s?function\s(\w+\s?\((.*)\))/
+
 module.exports =
     # This will work on JavaScript and CoffeeScript files, but not in js comments.
     selector: '.source.php'
@@ -57,7 +58,7 @@ module.exports =
             else if objectType = @isKnownObject(editor, bufferPosition, prefix)
                 @getObjectAvailableMethods(editor, prefix, objectType, resolve)
             else
-                    resolve([])
+                resolve([])
 
     matchCurrentContext: (prefix) ->
 
@@ -138,9 +139,17 @@ module.exports =
     createMethodDisplayText: (input) ->
 
         matches = input.match(methodDisplayTextRegex)
-        formattedParams = matches[4].split(',').map( (item) -> item.trim()).join(', ')
 
         unless matches is null
+
+            formattedParams = matches[4].split(',').map(
+                (item) ->
+                    item.split(' ').filter(
+                        (item) ->
+                            item != ''
+                    ).join(' ')
+            ).join(', ')
+
             matches[3].replace matches[4], formattedParams
 
 
@@ -213,12 +222,11 @@ module.exports =
         script = @getScript()
         autoload = @getAutoloadPath()
 
-        # console.log "php #{script} #{autoload} '#{namespace}'"
-
-        process = proc.exec "php #{script} #{autoload} '#{namespace}'"
+        process = proc.spawn "php", [script, autoload, namespace]
 
         @compiled = ''
         @availableResources = []
+
         process.stdout.on 'data', (data) =>
             @compiled += data
 
@@ -235,10 +243,9 @@ module.exports =
                     if resource.name.indexOf(prefix)
                         completions.push(@createCompletion(resource))
 
-                # console.log completions
                 resolve(completions)
             catch error
-                console.log error
+                console.log error, code, @compiled
 
     getAutoloadPath: ->
         atom.project.getPaths()[0] + '/vendor/autoload.php'
@@ -278,7 +285,7 @@ module.exports =
     # (optional): called _after_ the suggestion `replacementPrefix` is replaced
     # by the suggestion `text` in the buffer
     onDidInsertSuggestion: ({editor, triggerPosition, suggestion}) ->
-        console.log triggerPosition, suggestion
+        # console.log triggerPosition, suggestion
 
     # (optional): called when your provider needs to be cleaned up. Unsubscribe
     # from things, kill any processes, etc.
