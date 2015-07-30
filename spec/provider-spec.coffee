@@ -337,17 +337,17 @@ describe "Provider suite", ->
         expect(provider.createMethodDisplayText('public function testMethod(  Typed $param,    Second $param,    Third  $p)'))
             .toEqual('testMethod(Typed $param, Second $param, Third $p)')
 
-    it "works", ->
+    it "executes the command correctly and returns the completions", ->
 
         resolve = (completions) ->
-            console.log completions
+            expect(completions[0].text).toEqual('testMethod')
 
         lastMatch =
             input: '\\Obj as Teste;'
 
-        spawn.sequence.add(spawn.simple(1,'[{"name":"teste"}]'))
+        spawn.sequence.add(spawn.simple(1,'[{"name":"testMethod"}]'))
 
-        provider.fetchAndResolveDependencies(lastMatch,'teste',resolve)
+        provider.fetchAndResolveDependencies(lastMatch,'$this->test',resolve)
 
         expect(spawn.calls.length).toEqual(1)
         expect(spawn.calls[0].command).toEqual('php')

@@ -216,6 +216,8 @@ module.exports =
                     @fetchAndResolveDependencies(lastMatch,prefix,resolve)
                     break
 
+        resolve([])
+
     fetchAndResolveDependencies: (lastMatch, prefix, resolve) ->
 
         namespace = @parseNamespace(lastMatch)
@@ -240,7 +242,7 @@ module.exports =
                 completions = []
 
                 for resource in @availableResources
-                    if resource.name.indexOf(prefix)
+                    if prefix.indexOf(resource.name)
                         completions.push(@createCompletion(resource))
 
                 resolve(completions)
