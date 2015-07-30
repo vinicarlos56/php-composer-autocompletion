@@ -213,10 +213,9 @@ module.exports =
 
             if matches = line.match(regex)
                 if lastMatch = matches[1].match(objectType)
-                    @fetchAndResolveDependencies(lastMatch,prefix,resolve)
-                    break
+                    return @fetchAndResolveDependencies(lastMatch,prefix,resolve)
 
-        resolve([])
+        return resolve([])
 
     fetchAndResolveDependencies: (lastMatch, prefix, resolve) ->
 
