@@ -212,8 +212,15 @@ module.exports =
                 currentNamespace += namespaceMatch[1]
 
             if matches = line.match(regex)
-                if lastMatch = matches[1].match(objectType)
-                    return @fetchAndResolveDependencies(lastMatch,prefix,resolve)
+                isValid = matches[1].split('\\').map(
+                    (item) ->
+                        item.split(';')[0].split(' as ')[0] == objectType
+                ).filter(
+                    (item) -> item == true
+                )
+                console.log isValid, objectType, matches[1].match(objectType)
+                if isValid.length > 0
+                    return @fetchAndResolveDependencies(matches[1].match(objectType),prefix,resolve)
 
         if currentNamespace != ''
             fullName = currentNamespace+objectType
@@ -227,7 +234,7 @@ module.exports =
         script = @getScript()
         autoload = @getAutoloadPath()
 
-        # console.log namespace, script, autoload
+        console.log namespace, script, autoload
 
         process = proc.spawn "php", [script, autoload, namespace]
 
@@ -244,7 +251,7 @@ module.exports =
         process.on 'close', (code) =>
             try
                 @availableResources = JSON.parse(@compiled)
-                # console.log @availableResources
+                console.log @availableResources
 
                 completions = []
 
@@ -263,6 +270,7 @@ module.exports =
         __dirname + '/../scripts/main.php'
 
     parseNamespace: (lastMatch) ->
+        console.log lastMatch
         if typeof lastMatch is 'string'
             return lastMatch
         lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
