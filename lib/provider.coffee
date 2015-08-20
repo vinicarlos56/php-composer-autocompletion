@@ -157,11 +157,12 @@ module.exports =
 
         currentMethodParams = @getMethodParams(editor,bufferPosition)
 
-        for param in currentMethodParams
-            if prefix.indexOf(param.varName) == 0
-                unless param.objectType is undefined
-                    regex = "\\$#{param.varName.substr(1)}\\-\\>"
-                    return if prefix.match(regex) then param.objectType else false
+        unless currentMethodParams is undefined
+            for param in currentMethodParams
+                if prefix.indexOf(param.varName) == 0
+                    unless param.objectType is undefined
+                        regex = "\\$#{param.varName.substr(1)}\\-\\>"
+                        return if prefix.match(regex) then param.objectType else false
 
     getMethodParams: (editor,bufferPosition) ->
 
@@ -195,7 +196,8 @@ module.exports =
                 fullMethodString = inline.reverse().reduce (previous,current) ->
                     previous.trim()+current.trim()
 
-                return fullMethodString.match(fullMethodRegex)[0]
+                if m = fullMethodString.match(fullMethodRegex)
+                    return m[0]
 
          return ''
 
@@ -214,11 +216,16 @@ module.exports =
             if matches = line.match(regex)
                 isValid = matches[1].split('\\').map(
                     (item) ->
-                        item.split(';')[0].split(' as ')[0] == objectType
+                        l = item.split(';')[0].split(' as ')
+                        if l.length == 1
+                            l[0] == objectType
+                        else if l.length == 2
+                            l[0] == objectType or l[1] == objectType
+
                 ).filter(
                     (item) -> item == true
                 )
-                console.log isValid, objectType, matches[1].match(objectType)
+                # console.log isValid, objectType, matches[1].match(objectType)
                 if isValid.length > 0
                     return @fetchAndResolveDependencies(matches[1].match(objectType),prefix,resolve)
 
@@ -234,7 +241,7 @@ module.exports =
         script = @getScript()
         autoload = @getAutoloadPath()
 
-        console.log namespace, script, autoload
+        # console.log namespace, script, autoload
 
         process = proc.spawn "php", [script, autoload, namespace]
 
@@ -251,7 +258,7 @@ module.exports =
         process.on 'close', (code) =>
             try
                 @availableResources = JSON.parse(@compiled)
-                console.log @availableResources
+                # console.log @availableResources
 
                 completions = []
 
@@ -270,7 +277,6 @@ module.exports =
         __dirname + '/../scripts/main.php'
 
     parseNamespace: (lastMatch) ->
-        console.log lastMatch
         if typeof lastMatch is 'string'
             return lastMatch
         lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
