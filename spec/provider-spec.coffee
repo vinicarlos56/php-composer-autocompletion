@@ -293,6 +293,7 @@ describe "Provider suite", ->
         expect(provider.matchCurrentContext('$this->')).toNotEqual(null)
         expect(provider.matchCurrentContext('parent::')).toNotEqual(null)
         expect(provider.matchCurrentContext('self::')).toNotEqual(null)
+        expect(provider.matchCurrentContext('static::')).toNotEqual(null)
         expect(provider.matchCurrentContext('other::')).toEqual(null)
 
     it "gets local available completions", ->

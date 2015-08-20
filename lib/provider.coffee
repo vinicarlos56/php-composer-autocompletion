@@ -62,7 +62,7 @@ module.exports =
 
     matchCurrentContext: (prefix) ->
 
-        prefix.match(/(\$this->|parent::|self::)/)
+        prefix.match(/(\$this->|parent::|self::|static::)/)
 
     getLocalAvailableCompletions: (editor) ->
 
@@ -215,6 +215,10 @@ module.exports =
                 if lastMatch = matches[1].match(objectType)
                     return @fetchAndResolveDependencies(lastMatch,prefix,resolve)
 
+        if currentNamespace != ''
+            fullName = currentNamespace+objectType
+            return @fetchAndResolveDependencies(fullName,prefix,resolve)
+
         return resolve([])
 
     fetchAndResolveDependencies: (lastMatch, prefix, resolve) ->
@@ -223,20 +227,24 @@ module.exports =
         script = @getScript()
         autoload = @getAutoloadPath()
 
+        # console.log namespace, script, autoload
+
         process = proc.spawn "php", [script, autoload, namespace]
 
         @compiled = ''
+        @errorCompiled = ''
         @availableResources = []
 
         process.stdout.on 'data', (data) =>
             @compiled += data
 
         process.stderr.on 'data', (data) ->
-            console.log data
+            @errorCompiled += data
 
         process.on 'close', (code) =>
             try
                 @availableResources = JSON.parse(@compiled)
+                # console.log @availableResources
 
                 completions = []
 
@@ -246,7 +254,7 @@ module.exports =
 
                 resolve(completions)
             catch error
-                console.log error, code, @compiled
+                console.log error, code, @compiled, @errorCompiled
 
     getAutoloadPath: ->
         atom.project.getPaths()[0] + '/vendor/autoload.php'
@@ -255,6 +263,8 @@ module.exports =
         __dirname + '/../scripts/main.php'
 
     parseNamespace: (lastMatch) ->
+        if typeof lastMatch is 'string'
+            return lastMatch
         lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
 
     createCompletion: (completion) ->
