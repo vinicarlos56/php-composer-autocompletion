@@ -16,8 +16,8 @@ module.exports =
     # This will take priority over the default provider, which has a priority of 0.
     # `excludeLowerPriority` will suppress any providers with a lower priority
     # i.e. The default provider will be suppressed
-    inclusionPriority: 100
-    excludeLowerPriority: true
+    inclusionPriority: 0
+    excludeLowerPriority: false 
     filterSuggestions: true
 
     # Required: Return a promise, an array of suggestions, or null.
