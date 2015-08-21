@@ -17,7 +17,7 @@ module.exports =
     # `excludeLowerPriority` will suppress any providers with a lower priority
     # i.e. The default provider will be suppressed
     inclusionPriority: 0
-    excludeLowerPriority: false 
+    excludeLowerPriority: false
     filterSuggestions: true
 
     # Required: Return a promise, an array of suggestions, or null.
@@ -261,10 +261,10 @@ module.exports =
                 # console.log @availableResources
 
                 completions = []
-
+                # at this point there is no need to filter the results by prefix
+                # eventualy it will filtered by the autocomplete+
                 for resource in @availableResources
-                    if prefix.indexOf(resource.name)
-                        completions.push(@createCompletion(resource))
+                    completions.push(@createCompletion(resource))
 
                 resolve(completions)
             catch error

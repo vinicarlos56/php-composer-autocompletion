@@ -236,13 +236,18 @@ describe "Provider suite", ->
 
         regex = /^use(.*)$/
         namespace = 'use Object\\Space;'
-        namespaceWithAs = 'use Object\\Space as Space;'
+        namespaceWithAlias = 'use Object\\Space as Space;'
         objectType = 'Space'
 
         expect(provider.parseNamespace(namespace.match(regex)[1].match(objectType)))
             .toEqual('Object\\Space')
 
-        expect(provider.parseNamespace(namespaceWithAs.match(regex)[1].match(objectType)))
+        expect(provider.parseNamespace(namespaceWithAlias.match(regex)[1].match(objectType)))
+            .toEqual('Object\\Space')
+
+        objectTypeAlias = 'ObjAlias'
+        namespaceWithAnotherAlias = 'use Object\\Space as ObjAlias;'
+        expect(provider.parseNamespace(namespaceWithAnotherAlias.match(regex)[1].match(objectTypeAlias)))
             .toEqual('Object\\Space')
 
     it "gets full method definition", ->
@@ -262,6 +267,16 @@ describe "Provider suite", ->
             bufferPosition = editor.getLastCursor().getBufferPosition()
             expect(provider.getFullMethodDefinition(editor,bufferPosition))
                 .toEqual('')
+
+            editor.setCursorBufferPosition([18, 0])
+            bufferPosition = editor.getLastCursor().getBufferPosition()
+            expect(provider.getFullMethodDefinition(editor,bufferPosition))
+                .toEqual('public function secondParam(KnownObject $firstParam, Second $second)')
+
+            editor.setCursorBufferPosition([13, 0])
+            bufferPosition = editor.getLastCursor().getBufferPosition()
+            expect(provider.getFullMethodDefinition(editor,bufferPosition))
+                .toEqual('public function firstMethod($firstParam,$secondParam)')
 
     it "matches multiple line method definition correctly", ->
         editor = null
@@ -341,15 +356,63 @@ describe "Provider suite", ->
     it "executes the command correctly and returns the completions", ->
 
         resolve = (completions) ->
-            expect(completions[0].text).toEqual('testMethod')
 
+            expect(completions.length).toEqual(3)
+
+            expect(completions[0].text).toEqual('testMethod($param)')
+            expect(completions[0].snippet).toEqual('testMethod(${2:$param})${3}')
+            expect(completions[0].displayText).toEqual('testMethod($param)')
+            expect(completions[0].type).toEqual('method')
+            expect(completions[0].leftLabel).toEqual('public')
+            expect(completions[0].className).toEqual('method-public')
+            expect(completions[0].isStatic).toEqual(false)
+
+            expect(completions[1].text).toEqual('$pro')
+            expect(completions[1].snippet).toEqual('$pro${2}')
+            expect(completions[1].displayText).toEqual('$pro')
+            expect(completions[1].type).toEqual('property')
+            expect(completions[1].leftLabel).toEqual('public')
+            expect(completions[1].className).toEqual('method-public')
+            expect(completions[1].isStatic).toEqual(false)
+
+            expect(completions[2].text).toEqual('TEST')
+            expect(completions[2].snippet).toEqual('TEST${2}')
+            expect(completions[2].displayText).toEqual('TEST')
+            expect(completions[2].type).toEqual('constant')
+            expect(completions[2].leftLabel).toEqual('undefined')
+            expect(completions[2].className).toEqual('method-undefined')
+            expect(completions[2].isStatic).toEqual(undefined)
+
+        prefix = '$this->test' # does not make any difference on the results
         lastMatch =
             input: '\\Obj as Teste;'
 
-        spawn.sequence.add(spawn.simple(1,'[{"name":"testMethod"}]'))
+        methodJson = '{"name":"testMethod($param)","visibility":"public","snippet":"testMethod(${2:$param})${3}","isStatic":false,"type":"method"}'
+        propertyJson = '{"name":"$pro","visibility":"public","snippet":"$pro${2}","isStatic":false,"type":"property"}'
+        constantJson = '{"name":"TEST","snippet":"TEST${2}","type":"constant"}'
 
-        provider.fetchAndResolveDependencies(lastMatch,'$this->test',resolve)
+        spawn.sequence.add(spawn.simple(1,"[#{methodJson},#{propertyJson},#{constantJson}]"))
+
+        provider.fetchAndResolveDependencies(lastMatch,prefix,resolve)
 
         expect(spawn.calls.length).toEqual(1)
         expect(spawn.calls[0].command).toEqual('php')
         expect(spawn.calls[0].args).toEqual([provider.getScript(), provider.getAutoloadPath(), 'Obj'])
+
+
+    it "does not get object available methods because no namespace was provided", ->
+
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample.php').then (o) -> editor = o
+
+        runs ->
+            prefix = ''
+            objectType = 'Test'
+
+            resolve = (completions) ->
+                expect(completions).toEqual([])
+
+            provider.getObjectAvailableMethods(editor,prefix,objectType,resolve)
+
