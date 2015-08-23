@@ -1,4 +1,4 @@
-mockery = require 'mockery'
+mockery = require '/usr/local/lib/node_modules/mockery'
 mockSpawn = require '/usr/local/lib/node_modules/mock-spawn'
 provider = {}
 spawn = {}
