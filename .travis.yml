@@ -5,6 +5,10 @@ notifications:
     on_success: never
     on_failure: change
 
+install:
+    - npm install -g mokery
+    - npm install -g mock-spawn
+
 script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
 git:
