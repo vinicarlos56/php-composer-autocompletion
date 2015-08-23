@@ -1,4 +1,7 @@
 # php-composer-completion package
+
+[![Build Status](https://travis-ci.org/vinicarlos56/php-composer-autocompletion.svg?branch=master)](https://travis-ci.org/vinicarlos56/php-composer-autocompletion)
+
 autocomplete+ provider for php projects based on composer.
 
 This package is currently under development and might not work properly with others php providers.
