@@ -1,7 +1,7 @@
 {
   "name": "php-composer-completion",
   "main": "./lib/main",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "description": "autocomplete+ provider for php projects based on composer",
   "keywords": [
     "php",
@@ -16,8 +16,8 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-      "mockery": "1.4.0",
-      "mock-spawn": "v0.2.6"
+    "mockery": "1.4.0",
+    "mock-spawn": "v0.2.6"
   },
   "providedServices": {
     "autocomplete.provider": {

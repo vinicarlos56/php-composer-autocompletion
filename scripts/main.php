@@ -6,7 +6,14 @@ $name = $argv[2];
 
 require $autoload;
 
-$reflected = new ReflectionClass($name);
+try{
+
+    $reflected = new ReflectionClass($name);
+
+} catch(Exception $e) {
+    echo json_encode(['error' => 'class not found']).PHP_EOL;
+    exit();
+}
 
 function visibility($type)
 {
@@ -41,7 +48,7 @@ function createDisplayText($method)
 
     $out = [];
     foreach ($method->getParameters() as $idx => $param) {
-        $className = $param->getClass() ? $param->getClass().' ' : ''; 
+        $className = $param->getClass() ? $param->getClass()->getShortName().' ' : '';
         $out[] = $className.'$'.$param->name;
     }
 
@@ -56,7 +63,7 @@ foreach ($reflected->getMethods() as $method) {
         'visibility' => visibility($method),
         'snippet' => createSnippet($method),
         'isStatic' => $method->isStatic(),
-        'type' => 'method' 
+        'type' => 'method'
     ];
 }
 
@@ -66,7 +73,7 @@ foreach ($reflected->getProperties() as $property) {
         'visibility' => visibility($property),
         'snippet' => $property->name.'${2}',
         'isStatic' => $property->isStatic(),
-        'type' => 'property' 
+        'type' => 'property'
     ];
 }
 
@@ -78,5 +85,5 @@ foreach ($reflected->getConstants() as $name => $value) {
     ];
 }
 
-echo json_encode($properties+$constants+$methods);
+echo json_encode(array_merge($properties,$constants,$methods));
 echo PHP_EOL;

@@ -1,5 +1,8 @@
 <?php namespace Full\Name\Space;
 
+use Some\Name\KnownObject;
+use Some\Name\Second as Aliased;
+
 class TestClass extends SomeParent implements SomeInterface, OtherInterface
 {
     public $publicVar;
@@ -20,13 +23,13 @@ class TestClass extends SomeParent implements SomeInterface, OtherInterface
 
     }
 
-    public function secondParam(KnownObject $firstParam, Second $second)
+    public function secondParam(KnownObject $firstParam, Aliased $second)
     {
         // code...
     }
 
     public function thirdMethod(KnownObject $first,
-                                Second $second,
+                                Aliased $second,
                                 Third $third)
     {
         // code...

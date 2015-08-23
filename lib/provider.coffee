@@ -16,8 +16,8 @@ module.exports =
     # This will take priority over the default provider, which has a priority of 0.
     # `excludeLowerPriority` will suppress any providers with a lower priority
     # i.e. The default provider will be suppressed
-    inclusionPriority: 100
-    excludeLowerPriority: true
+    inclusionPriority: 0
+    excludeLowerPriority: false
     filterSuggestions: true
 
     # Required: Return a promise, an array of suggestions, or null.
@@ -62,7 +62,7 @@ module.exports =
 
     matchCurrentContext: (prefix) ->
 
-        prefix.match(/(\$this->|parent::|self::)/)
+        prefix.match(/(\$this->|parent::|self::|static::)/)
 
     getLocalAvailableCompletions: (editor) ->
 
@@ -157,11 +157,12 @@ module.exports =
 
         currentMethodParams = @getMethodParams(editor,bufferPosition)
 
-        for param in currentMethodParams
-            if prefix.indexOf(param.varName) == 0
-                unless param.objectType is undefined
-                    regex = "\\$#{param.varName.substr(1)}\\-\\>"
-                    return if prefix.match(regex) then param.objectType else false
+        unless currentMethodParams is undefined
+            for param in currentMethodParams
+                if prefix.indexOf(param.varName) == 0
+                    unless param.objectType is undefined
+                        regex = "\\$#{param.varName.substr(1)}\\-\\>"
+                        return if prefix.match(regex) then param.objectType else false
 
     getMethodParams: (editor,bufferPosition) ->
 
@@ -195,7 +196,8 @@ module.exports =
                 fullMethodString = inline.reverse().reduce (previous,current) ->
                     previous.trim()+current.trim()
 
-                return fullMethodString.match(fullMethodRegex)[0]
+                if m = fullMethodString.match(fullMethodRegex)
+                    return m[0]
 
          return ''
 
@@ -212,9 +214,26 @@ module.exports =
                 currentNamespace += namespaceMatch[1]
 
             if matches = line.match(regex)
-                if lastMatch = matches[1].match(objectType)
-                    @fetchAndResolveDependencies(lastMatch,prefix,resolve)
-                    break
+                isValid = matches[1].split('\\').map(
+                    (item) ->
+                        l = item.split(';')[0].split(' as ')
+                        if l.length == 1
+                            l[0] == objectType
+                        else if l.length == 2
+                            l[0] == objectType or l[1] == objectType
+
+                ).filter(
+                    (item) -> item == true
+                )
+                # console.log isValid, objectType, matches[1].match(objectType)
+                if isValid.length > 0
+                    return @fetchAndResolveDependencies(matches[1].match(objectType),prefix,resolve)
+
+        if currentNamespace != ''
+            fullName = currentNamespace+objectType
+            return @fetchAndResolveDependencies(fullName,prefix,resolve)
+
+        return resolve([])
 
     fetchAndResolveDependencies: (lastMatch, prefix, resolve) ->
 
@@ -222,30 +241,34 @@ module.exports =
         script = @getScript()
         autoload = @getAutoloadPath()
 
+        # console.log namespace, script, autoload
+
         process = proc.spawn "php", [script, autoload, namespace]
 
         @compiled = ''
+        @errorCompiled = ''
         @availableResources = []
 
         process.stdout.on 'data', (data) =>
             @compiled += data
 
         process.stderr.on 'data', (data) ->
-            console.log data
+            @errorCompiled += data
 
         process.on 'close', (code) =>
             try
                 @availableResources = JSON.parse(@compiled)
+                # console.log @availableResources
 
                 completions = []
-
+                # at this point there is no need to filter the results by prefix
+                # eventualy it will filtered by the autocomplete+
                 for resource in @availableResources
-                    if resource.name.indexOf(prefix)
-                        completions.push(@createCompletion(resource))
+                    completions.push(@createCompletion(resource))
 
                 resolve(completions)
             catch error
-                console.log error, code, @compiled
+                console.log error, code, @compiled, @errorCompiled
 
     getAutoloadPath: ->
         atom.project.getPaths()[0] + '/vendor/autoload.php'
@@ -254,6 +277,8 @@ module.exports =
         __dirname + '/../scripts/main.php'
 
     parseNamespace: (lastMatch) ->
+        if typeof lastMatch is 'string'
+            return lastMatch
         lastMatch.input.substring(1,lastMatch.input.length - 1).split(' as ')[0]
 
     createCompletion: (completion) ->
