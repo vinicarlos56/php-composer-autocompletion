@@ -230,7 +230,7 @@ module.exports =
                     return @fetchAndResolveDependencies(matches[1].match(objectType),prefix,resolve)
 
         if currentNamespace != ''
-            if objectType.indexOf('\\') == -1
+            if objectType and objectType.indexOf('\\') == -1
                 objectType = '\\'+objectType
             fullName = currentNamespace+objectType
             return @fetchAndResolveDependencies(fullName,prefix,resolve)
