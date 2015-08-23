@@ -144,7 +144,7 @@ module.exports =
 
             formattedParams = matches[4].split(',').map(
                 (item) ->
-                    item.split(' ').filter(
+                    item.split(/\s/).filter(
                         (item) ->
                             item != ''
                     ).join(' ')
