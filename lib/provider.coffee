@@ -174,7 +174,7 @@ module.exports =
 
             result = parametersSplited.map( (item) ->
 
-                words = item.trim().split(' ')
+                words = item.trim().split(/\s/)
 
                 objectType: if words[1] then words[0] else undefined
                 varName: if words[1] then words[1] else words[0]
