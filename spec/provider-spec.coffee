@@ -130,6 +130,8 @@ describe "Provider suite", ->
         mockery.registerAllowable(providerPath, true);
 
         provider = require providerPath
+        @script = provider.getScript()
+        @autoload = provider.getAutoloadPath()
 
 
     afterEach ->
@@ -397,7 +399,7 @@ describe "Provider suite", ->
 
         expect(spawn.calls.length).toEqual(1)
         expect(spawn.calls[0].command).toEqual('php')
-        expect(spawn.calls[0].args).toEqual([provider.getScript(), provider.getAutoloadPath(), 'Obj'])
+        expect(spawn.calls[0].args).toEqual([@script, @autoload, 'Obj'])
 
 
     it "does not get object available methods because no namespace was provided", ->
@@ -415,4 +417,94 @@ describe "Provider suite", ->
                 expect(completions).toEqual([])
 
             provider.getObjectAvailableMethods(editor,prefix,objectType,resolve)
+
+    it "tries to find the non aliased object used correctly", ->
+
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-use.php').then (o) -> editor = o
+
+        runs ->
+
+            resolve = (completions) ->
+                expect(completions.length).toEqual(0)
+
+            prefix = '' # does not make any difference on the results
+            objectType = 'KnownObject'
+
+            spawn.sequence.add(spawn.simple(1,"[]"))
+
+            provider.getObjectAvailableMethods(editor,prefix,objectType,resolve)
+
+            expectedNamespace = 'Some\\Name\\KnownObject'
+            expect(spawn.calls.length).toEqual(1)
+            expect(spawn.calls[0].command).toEqual('php')
+            expect(spawn.calls[0].args).toEqual([@script, @autoload, expectedNamespace])
+
+    it "tries to find the aliased object used correctly", ->
+
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-use.php').then (o) -> editor = o
+
+        runs ->
+
+            resolve = (completions) ->
+                expect(completions.length).toEqual(0)
+
+            prefix = '' # does not make any difference on the results
+            objectType = 'Aliased'
+
+            spawn.sequence.add(spawn.simple(1,"[]"))
+
+            provider.getObjectAvailableMethods(editor,prefix,objectType,resolve)
+
+            expectedNamespace = 'Some\\Name\\Second'
+            expect(spawn.calls.length).toEqual(1)
+            expect(spawn.calls[0].command).toEqual('php')
+            expect(spawn.calls[0].args).toEqual([@script, @autoload, expectedNamespace])
+
+    it "falls back to current namespace when used object's namespace is not declared", ->
+
+        editor = null
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-use.php').then (o) -> editor = o
+
+        runs ->
+
+            resolve = (completions) ->
+                expect(completions.length).toEqual(0)
+
+            prefix = '' # does not make any difference on the results
+
+            objectType = 'Third'
+            spawn.sequence.add(spawn.simple(1,"[]"))
+
+            provider.getObjectAvailableMethods(editor,prefix,objectType,resolve)
+
+            expectedNamespace = 'Full\\Name\\Space\\Third'
+
+            expect(spawn.calls.length).toEqual(1)
+            expect(spawn.calls[0].command).toEqual('php')
+            expect(spawn.calls[0].args).toEqual([@script, @autoload, expectedNamespace])
+
+            objectTypeWhithSlash = '\\Third'
+
+            provider.getObjectAvailableMethods(editor,prefix,objectTypeWhithSlash,resolve)
+
+            expect(spawn.calls.length).toEqual(2)
+            expect(spawn.calls[1].command).toEqual('php')
+            expect(spawn.calls[1].args).toEqual([@script, @autoload, expectedNamespace])
+
+            objectTypeAliasedIncorrectly = '\\Second'
+            expectedFallBackNamespace = 'Full\\Name\\Space\\Second'
+
+            provider.getObjectAvailableMethods(editor,prefix,objectTypeAliasedIncorrectly,resolve)
+
+            expect(spawn.calls.length).toEqual(3)
+            expect(spawn.calls[2].command).toEqual('php')
+            expect(spawn.calls[2].args).toEqual([@script, @autoload, expectedFallBackNamespace])
 
