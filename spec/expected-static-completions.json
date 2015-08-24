@@ -1,0 +1,20 @@
+[
+    {
+        "text": "$publicStatic",
+        "snippet": "publicStatic${2}",
+        "displayText": "$publicStatic",
+        "type": "property",
+        "leftLabel": "public static",
+        "className": "method-public",
+        "isStatic": true
+    },
+    {
+        "text": "firstMethod($firstParam, $secondParam)",
+        "snippet": "firstMethod(${2:$firstParam},${3:$secondParam})${4}",
+        "displayText": "firstMethod($firstParam, $secondParam)",
+        "type": "method",
+        "leftLabel": "public static",
+        "className": "method-public",
+        "isStatic": true
+    }
+]

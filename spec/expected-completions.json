@@ -1,0 +1,33 @@
+[{
+    "text": "__construct($test)",
+    "snippet": "__construct(${2:$test})${3}",
+    "displayText": "__construct($test)",
+    "type": "method",
+    "leftLabel": "undefined",
+    "className": "method-undefined",
+    "isStatic": false
+}, {
+    "text": "firstMethod($firstParam, $secondParam)",
+    "snippet": "firstMethod(${2:$firstParam},${3:$secondParam})${4}",
+    "displayText": "firstMethod($firstParam, $secondParam)",
+    "type": "method",
+    "leftLabel": "public",
+    "className": "method-public",
+    "isStatic": false
+}, {
+    "text": "secondParam(KnownObject $firstParam, Second $second)",
+    "snippet": "secondParam(${2:$firstParam},${3:$second})${4}",
+    "displayText": "secondParam(KnownObject $firstParam, Second $second)",
+    "type": "method",
+    "leftLabel": "public",
+    "className": "method-public",
+    "isStatic": false
+}, {
+    "text": "thirdMethod(KnownObject $first, Second $second, Third $third)",
+    "snippet": "thirdMethod(${2:$first},${3:$second},${4:$third})${5}",
+    "displayText": "thirdMethod(KnownObject $first, Second $second, Third $third)",
+    "type": "method",
+    "leftLabel": "public",
+    "className": "method-public",
+    "isStatic": false
+}]
