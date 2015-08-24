@@ -16,8 +16,8 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "mockery": "1.4.0",
-    "mock-spawn": "v0.2.6"
+    "mockery": "mfncooper/mockery",
+    "mock-spawn": "gotwarlost/mock-spawn"
   },
   "providedServices": {
     "autocomplete.provider": {
