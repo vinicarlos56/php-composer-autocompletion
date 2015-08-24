@@ -8,6 +8,7 @@ notifications:
 install:
     - npm install -g mockery
     - npm install -g mock-spawn
+    - sudo apt-get install -y php5
 
 script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
