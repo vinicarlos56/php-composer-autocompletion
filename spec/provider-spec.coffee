@@ -4,18 +4,20 @@ fs = require 'fs'
 provider = {}
 spawn = {}
 
+providerPath = '../lib/provider'
+
 expectedCompletions = JSON.parse fs.readFileSync __dirname+'/expected-completions.json', 'utf8'
 fullExpectedCompletions =  JSON.parse fs.readFileSync __dirname+'/full-expected-completions.json', 'utf-8'
 
 describe "Provider suite", ->
 
     beforeEach ->
-        providerPath = '../lib/provider'
         verbose = false
         spawn = mockSpawn(verbose)
         mockery.enable({ useCleanCache: true })
         mockery.registerMock('child_process', { spawn: spawn })
-        mockery.registerAllowable(providerPath, true);
+        mockery.registerAllowable(providerPath, true)
+        mockery.warnOnUnregistered(false)
 
         provider = require providerPath
         @script = provider.getScript()
@@ -467,4 +469,38 @@ describe "Provider suite", ->
         runs ->
             expected = JSON.parse fs.readFileSync __dirname+'/expected-static-completions.json', 'utf-8'
             expect(promise.length).toEqual 2
+            expect(promise).toEqual expected
+
+    it "should return parent completions correctly showing inherited and override with $this-> prefix", ->
+
+        editor = null
+        promise = null
+
+        # real test case,no mock at this point
+        mockery.deregisterAll()
+        mockery.resetCache()
+        mockery.disable()
+
+        provider = require providerPath
+
+        waitsForPromise ->
+            atom.project.open('sample/sample-full.php').then (o) -> editor = o
+
+        waitsForPromise ->
+
+            scopeDescriptor = null
+            prefix = null
+
+            editor.setTextInBufferRange([[20,0],[20,7]], '$this->')
+            editor.setCursorBufferPosition([20,7])
+            bufferPosition = editor.getLastCursor().getBufferPosition()
+
+            provider.setAutoloadPath __dirname+'/sample/autoload.php'
+            provider.getSuggestions({editor, bufferPosition, scopeDescriptor, prefix}).then (p) ->
+                promise = p
+
+        runs ->
+
+            expected = JSON.parse fs.readFileSync __dirname+'/expected-parent-completions.json', 'utf-8'
+            expect(promise.length).toEqual 13
             expect(promise).toEqual expected

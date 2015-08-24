@@ -34,11 +34,20 @@ module.exports =
                     objectType = @getParentClassName(editor)
 
                     mergeWithLocal = (inheritedCompletions) ->
+
+                        toBeRemoved = []
+
                         for completion in inheritedCompletions
+
                             completion.rightLabel = '(inherited)'
+
                             for localCompletion in local
                                 if localCompletion.text == completion.text
-                                    localCompletion.rightLabel = '(override)' # don't have to remove?
+                                    localCompletion.rightLabel = '(override)'
+                                    toBeRemoved.push completion
+
+                        for c in toBeRemoved
+                            inheritedCompletions.splice(inheritedCompletions.indexOf(c),1)
 
                         resolve(local.concat(inheritedCompletions))
 
@@ -272,8 +281,14 @@ module.exports =
             catch error
                 console.log error, code, @compiled, @errorCompiled
 
+    setAutoloadPath: (path) ->
+        @autoloadPath = path
+
     getAutoloadPath: ->
-        atom.project.getPaths()[0] + '/vendor/autoload.php'
+        if @autoloadPath is undefined
+            return atom.project.getPaths()[0] + '/vendor/autoload.php'
+
+        @autoloadPath
 
     getScript: ->
         __dirname + '/../scripts/main.php'
