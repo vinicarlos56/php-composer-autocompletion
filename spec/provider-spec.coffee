@@ -57,7 +57,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample.php',initialLine: 13).then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample.php',initialLine: 13).then (o) -> editor = o
 
         runs ->
             expected = [{
@@ -114,7 +114,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample.php',initialLine: 18).then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample.php',initialLine: 18).then (o) -> editor = o
 
         runs ->
 
@@ -146,7 +146,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
 
         runs ->
 
@@ -174,7 +174,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-multiple.php',initialLine: 25).then (o) -> editor = o
 
         runs ->
 
@@ -191,7 +191,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-multiple.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-multiple.php').then (o) -> editor = o
 
         runs ->
             expect(provider.getLocalAvailableCompletions(editor)).toEqual(expectedCompletions)
@@ -209,7 +209,7 @@ describe "Provider suite", ->
         local = []
 
         waitsForPromise ->
-            atom.project.open('sample/sample-full.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-full.php').then (o) -> editor = o
 
         runs ->
             local = []
@@ -221,7 +221,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-var.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-var.php').then (o) -> editor = o
 
         runs ->
             expect(provider.getParentClassName(editor)).toEqual('\\SomeParent')
@@ -297,7 +297,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample.php').then (o) -> editor = o
 
         runs ->
             prefix = ''
@@ -313,7 +313,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-use.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-use.php').then (o) -> editor = o
 
         runs ->
 
@@ -337,7 +337,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-use.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-use.php').then (o) -> editor = o
 
         runs ->
 
@@ -361,7 +361,7 @@ describe "Provider suite", ->
         editor = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-use.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-use.php').then (o) -> editor = o
 
         runs ->
 
@@ -405,7 +405,7 @@ describe "Provider suite", ->
         promise = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample.php').then (o) -> editor = o
 
         waitsForPromise ->
 
@@ -428,7 +428,7 @@ describe "Provider suite", ->
         promise = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-multiple.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-multiple.php').then (o) -> editor = o
 
         waitsForPromise ->
 
@@ -452,7 +452,7 @@ describe "Provider suite", ->
         promise = null
 
         waitsForPromise ->
-            atom.project.open('sample/sample-full-static.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-full-static.php').then (o) -> editor = o
 
         waitsForPromise ->
 
@@ -484,7 +484,7 @@ describe "Provider suite", ->
         provider = require providerPath
 
         waitsForPromise ->
-            atom.project.open('sample/sample-full.php').then (o) -> editor = o
+            atom.workspace.open(__dirname + '/sample/sample-full.php').then (o) -> editor = o
 
         waitsForPromise ->
 
