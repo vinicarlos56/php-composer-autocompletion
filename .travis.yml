@@ -17,7 +17,7 @@ install:
     - npm install -g mockery
     - npm install -g mock-spawn
 
-script: 'curl -s https://raw.githubusercontent.com/vinicarlos56/ci/master/build-package.sh | sh'
+script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
 git:
   depth: 10
