@@ -46,7 +46,7 @@ function createDisplayText($method)
         return $method->name.'()';
     }
 
-    $out = [];
+    $out = array();
     foreach ($method->getParameters() as $idx => $param) {
         $className = $param->getClass() ? $param->getClass()->getShortName().' ' : '';
         $out[] = $className.'$'.$param->name;
@@ -55,34 +55,34 @@ function createDisplayText($method)
     return $method->name.'('.implode($out,', ').')';
 }
 
-$methods = $properties = $constants = [];
+$methods = $properties = $constants = array();
 
 foreach ($reflected->getMethods() as $method) {
-    $methods[] = [
+    $methods[] = array( 
         'name' => createDisplayText($method),
         'visibility' => visibility($method),
         'snippet' => createSnippet($method),
         'isStatic' => $method->isStatic(),
         'type' => 'method'
-    ];
+    );
 }
 
 foreach ($reflected->getProperties() as $property) {
-    $properties[] = [
+    $properties[] = array( 
         'name' => $property->name,
         'visibility' => visibility($property),
         'snippet' => $property->name.'${2}',
         'isStatic' => $property->isStatic(),
         'type' => 'property'
-    ];
+    );
 }
 
 foreach ($reflected->getConstants() as $name => $value) {
-    $constants[] = [
+    $constants[] = array(
         'name' => $name,
         'type' => 'constant',
         'snippet' => $name.'${2}',
-    ];
+    );
 }
 
 echo json_encode(array_merge($properties,$constants,$methods));
