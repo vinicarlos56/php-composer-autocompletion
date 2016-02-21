@@ -471,7 +471,7 @@ describe "Provider suite", ->
             expect(promise.length).toEqual 2
             expect(promise).toEqual expected
 
-    it "should return parent completions correctly showing inherited and override with $this-> prefix", ->
+    xit "should return parent completions correctly showing inherited and override with $this-> prefix", ->
 
         editor = null
         promise = null
