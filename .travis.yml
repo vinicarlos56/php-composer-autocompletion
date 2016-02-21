@@ -1,23 +1,31 @@
-language: node_js
-
-node_js:
-  - "0.12"
-
 notifications:
   email:
     on_success: never
     on_failure: change
 
-before_install:
-    - sudo apt-get update
-    - sudo apt-get install -y php5-cli
-    - sudo php -v
-
-install:
-    - npm install -g mockery
-    - npm install -g mock-spawn
-
 script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
 git:
   depth: 10
+
+sudo: false
+
+os:
+  - linux
+  - osx
+
+env:
+  global:
+    - APM_TEST_PACKAGES=""
+
+  matrix:
+    - ATOM_CHANNEL=stable
+    - ATOM_CHANNEL=beta
+
+addons:
+  apt:
+    packages:
+    - build-essential
+    - git
+    - libgnome-keyring-dev
+    - fakeroot
